@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Marhey:wght@700&family=Readex+Pro:wght@400;600&display=swap');
+
+:root {
+  --C-yalla-turquoise: #0FB5A6;
+  --C-yalla-dark-turquoise: #0A8C80;
+  --C-yalla-navy: #0B1F2A;
+  --C-yalla-navy-light: #14303F;
+  --C-yalla-yellow: #FFD23F;
+  --C-yalla-coral: #FF5A5F;
+  --C-yalla-coral-hover: #e94a4f;
+  --C-yalla-blue: #2F80ED;
+  --C-yalla-green: #27C281;
+  --C-yalla-mint: #E3F8F5;
+  --C-yalla-white: #FFFFFF;
+  --C-yalla-border-dark: #02090D;
+
+  
+
+  --yalla-text-muted: #CFE;
+  --C-yalla-text-dim: #9CC;
+
+  --font-display: 'Marhey', 'Cairo', system-ui, sans-serif;
+  --font-body: 'Readex Pro', 'Cairo', system-ui, sans-serif;
+
+  color-scheme: dark;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+
+  --yalla-radius: 16px;
+  --yalla-radius-sm: 14px;
+  
+  --yalla-shadow: 6px 6px 0 var(--C-yalla-border-dark);
+  --yalla-shadow-sm: 4px 4px 0 var(--C-yalla-navy);
+  --center-shadow: 0 6px 0 var(--C-yalla-border-dark);
+
+  --yalla-border: 3px solid var(--C-yalla-border-dark);
+}
+
+* {
+  box-sizing: border-box;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+html {
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+
+body {
+  margin: 0;
+  background: var(--C-yalla-navy) radial-gradient(circle at 20% 0, #1b4a5c 0, transparent 55%);
+  background-attachment: fixed;
+  color: var(--C-yalla-white);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+.rounded-div {
+  background: var(--n2);
+  border: var(--C-yalla-border);
+  box-shadow: var(--yalla-shadow);
+  border-radius: 24px;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 3px solid var(--C-yalla-yellow);
+  outline-offset: 3px;
+}
