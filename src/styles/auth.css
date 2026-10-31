@@ -2,8 +2,8 @@
   max-width: 440px;
   margin: 60px auto;
   padding: 28px 24px;
-  background: var(--C-yalla-navy-light);
-  border: 3px solid var(--C-yalla-border-dark);
+  background: var(--C-yalla-surface);
+  border: 3px solid var(--C-yalla-border-strong);
   border-radius: 20px;
   box-shadow: var(--yalla-shadow);
   text-align: center;
@@ -11,7 +11,7 @@
 
 .auth-container h2 {
   font-family: var(--font-display);
-  color: var(--C-yalla-yellow);
+  color: var(--C-yalla-highlight);
   margin-top: 0;
   margin-bottom: 22px;
   font-size: 26px;
@@ -27,17 +27,17 @@
   flex: 1;
   padding: 12px 8px;
   border-radius: 14px;
-  border: 3px solid var(--C-yalla-border-dark);
-  background: var(--C-yalla-navy);
-  color: var(--C-yalla-white);
+  border: 3px solid var(--C-yalla-border-strong);
+  background: var(--C-yalla-bg);
+  color: var(--C-yalla-fg);
   font-family: var(--font-display);
   font-size: 15px;
   transition: all 0.2s ease;
 }
 
 .role-selector button.active {
-  background: var(--C-yalla-yellow);
-  color: var(--C-yalla-navy);
+  background: var(--C-yalla-highlight);
+  color: var(--C-yalla-bg);
   transform: scale(1.03);
 }
 
@@ -57,15 +57,15 @@
 .form-group label {
   font-size: 14px;
   font-weight: 600;
-  color: var(--C-yalla-text-muted);
+  color: var(--C-yalla-text-secondary);
 }
 
 .auth-container input {
   padding: 12px 14px;
   border-radius: 12px;
-  border: 3px solid var(--C-yalla-border-dark);
-  background: var(--C-yalla-navy);
-  color: var(--C-yalla-white);
+  border: 3px solid var(--C-yalla-border-strong);
+  background: var(--C-yalla-bg);
+  color: var(--C-yalla-fg);
   font-family: var(--font-body);
   font-size: 15px;
   outline: none;
@@ -73,17 +73,17 @@
 }
 
 .auth-container input:focus {
-  border-color: var(--C-yalla-yellow);
+  border-color: var(--C-yalla-highlight);
 }
 
 .submit-btn {
   margin-top: 8px;
   padding: 12px;
-  background: var(--C-yalla-coral);
-  color: var(--C-yalla-white);
+  background: var(--C-yalla-danger);
+  color: var(--C-yalla-fg);
   font-family: var(--font-display);
   font-size: 19px;
-  border: 3px solid var(--C-yalla-border-dark);
+  border: 3px solid var(--C-yalla-border-strong);
   border-radius: 14px;
   box-shadow: var(--center-shadow);
   transition: transform 0.1s, box-shadow 0.1s;
@@ -97,11 +97,11 @@
 .auth-switch {
   margin-top: 20px;
   font-size: 14px;
-  color: var(--C-yalla-text-muted);
+  color: var(--C-yalla-text-secondary);
 }
 
 .auth-switch a {
-  color: var(--C-yalla-yellow);
+  color: var(--C-yalla-highlight);
   text-decoration: none;
   font-weight: 600;
 }

@@ -11,9 +11,9 @@
 
 .landing-badge {
   font-family: var(--font-display);
-  background: var(--C-C-yalla-navy-light);
-  color: var(--C-yalla-yellow);
-  border: 3px solid var(--C-yalla-border-dark);
+  background: var(--C-yalla-surface);
+  color: var(--C-yalla-highlight);
+  border: 3px solid var(--C-yalla-border-strong);
   border-radius: 12px;
   padding: 6px 16px;
   font-size: 15px;
@@ -23,21 +23,21 @@
 .landing-title {
   font-family: var(--font-display);
   font-size: clamp(32px, 5vw, 56px);
-  color: var(--C-yalla-white);
+  color: var(--C-yalla-fg);
   line-height: 1.25;
   margin: 0;
   text-shadow:var(center-shadow);
 }
 
 .landing-title span {
-  color: var(--C-yalla-coral);
+  color: var(--C-yalla-danger);
   display: inline-block;
 }
 
 .landing-subtitle {
   font-family: var(--font-body);
   font-size: clamp(16px, 2.5vw, 20px);
-  color: var(--C-yalla-text-muted);
+  color: var(--C-yalla-text-secondary);
   max-width: 650px;
   margin: 0;
   line-height: 1.6;
@@ -52,8 +52,8 @@
 }
 
 .landing-card {
-  background: var(--C-C-yalla-navy-light);
-  border: 3px solid var(--C-yalla-border-dark);
+  background: var(--C-yalla-surface);
+  border: 3px solid var(--C-yalla-border-strong);
   border-radius: 20px;
   padding: 24px;
   box-shadow: var(--yalla-shadow);
@@ -72,13 +72,13 @@
 
 .landing-card h3 {
   font-family: var(--font-display);
-  color: var(--C-yalla-yellow);
+  color: var(--C-yalla-highlight);
   margin: 0 0 8px 0;
   font-size: 22px;
 }
 
 .landing-card p {
-  color: var(--C-yalla-text-muted);
+  color: var(--C-yalla-text-secondary);
   font-size: 14px;
   line-height: 1.5;
   margin: 0;
@@ -97,19 +97,19 @@
   font-size: 20px;
   padding: 12px 32px;
   border-radius: 16px;
-  border: 3px solid var(--C-yalla-border-dark);
+  border: 3px solid var(--C-yalla-border-strong);
   box-shadow: var(--center-shadow);
   transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .btn-primary {
-  background: var(--C-yalla-coral);
-  color: var(--C-yalla-white);
+  background: var(--C-yalla-danger);
+  color: var(--C-yalla-fg);
 }
 
 .btn-secondary {
-  background: var(--C-yalla-yellow);
-  color: var(--C-yalla-navy);
+  background: var(--C-yalla-highlight);
+  color: var(--C-yalla-bg);
 }
 
 .btn-primary:active, .btn-secondary:active {
