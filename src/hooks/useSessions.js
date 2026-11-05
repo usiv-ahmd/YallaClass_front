@@ -1,139 +1,167 @@
-import { useMemo, useState } from "react";
+// hooks/useSessions.js
+import { useState, useEffect, useMemo, useCallback } from "react";
+import {
+  readSessions, readMySessions, subscribeSessions, hydrate,
+  createSession, updateSession, deleteSession,
+  replaceQuestions, uploadSessionFile, removeSessionFile,
+  removeStudentFromSession, warnStudentForNameChange,
+} from "../store/sessionStore";
 
-export function useSessions(initialSessions = []) {
-  const [sessionsList, setSessionsList] = useState(initialSessions);
-  const [selectedId, setSelectedId]     = useState(initialSessions[0]?.id ?? null);
-  const [search, setSearch]             = useState("");
-  const [filterTab, setFilterTab]       = useState("all");
-  const [isUploading, setIsUploading]   = useState(false);
+export function useSessions() {
+  const [sessions, setSessions] = useState(() => {
+    try {
+      return readMySessions() ?? [];
+    } catch (e) {
+      console.error("[useSessions.initial]", e);
+      return [];
+    }
+  });
+  const [activeSessionId, setActiveSessionId] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const selectedSession = sessionsList.find((session) => session.id === selectedId) ?? null;
+  useEffect(() => { 
+    hydrate().catch(console.error); 
+  }, []);
 
-  const filtered = useMemo(() => {
-    return sessionsList.filter((session) => {
-      const matchesSearch = session.title.toLowerCase().includes(search.toLowerCase());
-      const matchesTab =
-        filterTab === "all" ||
-        (filterTab === "upcoming"  && session.status === "scheduled") ||
-        (filterTab === "completed" && session.status === "completed") ||
-        (filterTab === "draft"     && session.status === "draft");
-      return matchesSearch && matchesTab;
-    });
-  }, [sessionsList, search, filterTab]);
+  useEffect(() => subscribeSessions(() => {
+    try {
+      setSessions(readMySessions() ?? []);
+    } catch (e) {
+      console.error("[useSessions.subscribe]", e);
+    }
+  }), []);
 
+  const activeSession = useMemo(() => {
+    if (!sessions?.length) return null;
+    if (activeSessionId) {
+      const found = sessions.find((s) => s.id === activeSessionId);
+      if (found) return found;
+    }
+    return sessions[0] ?? null;
+  }, [sessions, activeSessionId]);
 
-  const stats = useMemo(() => ({
-    scheduled: sessionsList.filter((session) => session.status === "scheduled").length,
-    ended:     sessionsList.filter((session) => session.status === "completed").length,
-    drafted:   sessionsList.filter((session) => session.status === "draft").length,
-    all: sessionsList.filter((session) => session.status === "scheduled").length + sessionsList.filter((session) => session.status === "completed").length + sessionsList.filter((session) => session.status === "draft").length
-  }), [sessionsList]);
+  const setActiveSession = useCallback((idOrSession) => {
+    const id = typeof idOrSession === "string" ? idOrSession : idOrSession?.id;
+    setActiveSessionId(id ?? null);
+  }, []);
 
-  const createSession = (data) => {
-    const newSession = {
-      id: `session-${Date.now()}`,
-      ...data,
-      code: `session-${Date.now().toString().slice(-4)}`,
-      studentnumber: "0",
-      students: [],
-      questions: [],
-    };
-    setSessionsList((prev) => [...prev, newSession]);
-    setSelectedId(newSession.id);
-    return newSession;
-  };
-
-  const updateSession = (id, data) => {
-    setSessionsList((prev) =>
-      prev.map((session) => (session.id === id ? { ...session, ...data } : session))
-    );
-  };
-
-  const deleteSession = (id) => {
-    setSessionsList((prev) => {
-      const next = prev.filter((session) => session.id !== id);
-      if (id === selectedId) setSelectedId(next[0]?.id ?? null);
+  const setSession = useCallback((updatedOrFn) => {
+    setSessions((prev) => {
+      const safePrev = prev ?? [];
+      const current = safePrev.find((s) => s.id === activeSessionId) ?? safePrev[0] ?? null;
+      const updated = typeof updatedOrFn === "function" ? updatedOrFn(current) : updatedOrFn;
+      if (!updated?.id) return safePrev;
+      const idx = safePrev.findIndex((s) => s.id === updated.id);
+      if (idx === -1) return [...safePrev, updated];
+      const next = [...safePrev];
+      next[idx] = updated;
       return next;
     });
-  };
+  }, [activeSessionId]);
 
-  const scheduleSession = (id) => {
-    setSessionsList((prev) =>
-      prev.map((session) => (session.id === id ? { ...session, status: "scheduled" } : session))
-    );
-  };
-
-  // ── Questions ────────────────────────────────────
-  const updateQuestions = (id, newQuestions) => {
-    setSessionsList((prev) =>
-      prev.map((session) => (session.id === id ? { ...session, questions: newQuestions } : session))
-    );
-  };
-
-  // ── Files ────────────────────────────────────────
-  const uploadFile = async (file, sessionId) => {
-    if (!file || !sessionId) return;
-    setIsUploading(true);
+  const saveSession = async (data, opts = {}) => {
     try {
-      await new Promise((r) => setTimeout(r, 1500));
-
-      const fileId = `file-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-      const aiQuestion = {
-        id: `ai-${Date.now()}`,
-        question: `سؤال ذكي مستخرج من ملف (${file.name}): ما الفكرة الأساسية؟`,
-        options: ["الخيار الصحيح", "خيار 1", "خيار 2", "خيار 3"],
-        correctAnswer: "الخيار الصحيح",
-        correctOptionIndex: 0,
-        source: "ai",
-        sourceFileId: fileId,
-        sourceFileName: file.name,
-        type: "mcq",
-      };
-
-      setSessionsList((prev) =>
-        prev.map((session) => {
-          if (session.id !== sessionId) return session;
-          return {
-            ...session,
-            files: [...(session.files || []), { id: fileId, name: file.name, url: `https://mock-storage.com/files/${file.name}` }],
-            questions: [...(session.questions || []), aiQuestion],
-          };
-        })
-      );
-    } catch (err) {
-      console.error("Error uploading file:", err);
-      alert("حصل خطأ أثناء رفع الملف");
-    } finally {
-      setIsUploading(false);
+      const updated = (opts.isNew || !activeSession?.id)
+        ? await createSession(data)
+        : await updateSession(activeSession.id, data);
+        
+      if (updated?.id) {
+        setSessions((prev) => {
+          const safePrev = prev ?? [];
+          const idx = safePrev.findIndex((s) => s.id === updated.id);
+          if (idx === -1) return [...safePrev, updated];
+          const next = [...safePrev];
+          next[idx] = updated;
+          return next;
+        });
+        setActiveSessionId(updated.id);
+        return updated;
+      }
+      return null;
+    } catch (e) {
+      console.error("[useSessions.saveSession] Error:", e);
+      return null;
     }
   };
 
-  const removeFile = (sessionId, idx) => {
-    setSessionsList((prev) =>
-      prev.map((session) => {
-        if (session.id !== sessionId) return session;
-        const fileToRemove = (session.files || [])[idx];
-        if (!fileToRemove) return session;
-        return {
-          ...session,
-          files: (session.files || []).filter((_, i) => i !== idx),
-          questions: fileToRemove.id
-            ? (session.questions || []).filter((q) => q.sourceFileId !== fileToRemove.id)
-            : session.questions,
-        };
-      })
-    );
+  const resetSession = async () => {
+    try {
+      if (activeSession?.id) {
+        await deleteSession(activeSession.id);
+      }
+      setSessions((prev) => (prev ?? []).filter((s) => s.id !== activeSession?.id));
+      setActiveSessionId(null);
+      return true;
+    } catch (e) { 
+      console.error("[useSessions.resetSession] Error:", e); 
+      return false;
+    }
+  };
+
+  const updateQuestions = async (nextQuestions) => {
+    if (!activeSession?.id) return null;
+    try {
+      const updated = await replaceQuestions(activeSession.id, nextQuestions);
+      if (updated?.id) setSession(updated);
+      return updated;
+    } catch (e) { 
+      console.error("[useSessions.updateQuestions]", e); 
+      return null; 
+    }
+  };
+
+  const uploadFile = async (file) => {
+    if (!file || !activeSession?.id) return;
+    setIsUploading(true);
+    try {
+      const res = await uploadSessionFile(activeSession.id, file);
+      if (res?.session?.id) setSession(res.session);
+    } catch (e) { 
+      console.error("[useSessions.uploadFile]", e); 
+      alert("حصل خطأ أثناء رفع الملف"); 
+    } finally { 
+      setIsUploading(false); 
+    }
+  };
+
+  const removeFile = async (idx) => {
+    const file = activeSession?.files?.[idx];
+    if (!file?.id || !activeSession?.id) return;
+    try {
+      const updated = await removeSessionFile(activeSession.id, file.id);
+      if (updated?.id) setSession(updated);
+    } catch (e) { console.error("[useSessions.removeFile]", e); }
+  };
+
+  const removeStudent = async (studentId) => {
+    if (!activeSession?.id) return;
+    try {
+      const updated = await removeStudentFromSession(activeSession.id, studentId);
+      if (updated?.id) setSession(updated);
+    } catch (e) { console.error("[useSessions.removeStudent]", e); }
+  };
+
+  const warnStudentForNameChangeLocal = async (studentId) => {
+    if (!activeSession?.id) return;
+    try {
+      const updated = await warnStudentForNameChange(activeSession.id, studentId);
+      if (updated?.id) setSession(updated);
+    } catch (e) { console.error("[useSessions.warnStudentForNameChange]", e); }
   };
 
   return {
-    sessionsList, setSessionsList,
-    selectedId, setSelectedId,
-    selectedSession,
-    search, setSearch,
-    filterTab, setFilterTab,
+    session: activeSession,
+    sessions: sessions ?? [],
+    setSession,
+    setActiveSession,
     isUploading,
-    filtered, stats,
-    createSession, updateSession, deleteSession, scheduleSession,
-    updateQuestions, uploadFile, removeFile,
+
+    saveSession,
+    resetSession,
+    updateQuestions,
+    uploadFile,
+    removeFile,
+    removeStudent,
+    warnStudentForNameChange: warnStudentForNameChangeLocal,
   };
 }

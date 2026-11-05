@@ -1,294 +1,312 @@
 // hooks/useLiveSession.js
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { LIVE_STATES } from "./liveStates";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { liveOps } from "../store/sessionStore";
 
-export function useLiveSession(sessionsList, setSessionsList) {
-  const [isLive, setIsLive]                 = useState(false);
-  const [liveSessionId, setLiveSessionId]   = useState(null);
-  const [liveState, setLiveState]           = useState("lobby");
-  const [currentQuestionIndex, setCurrentQIdx] = useState(0);
+const LIVE_STATES = {
+  lobby:     { label: "مستنيين البداية",  cls: "status-ready",    canGoTo: ["countdown"] },
+  countdown: { label: "العدّ التمهيدي",   cls: "status-live",     canGoTo: ["question", "lobby"] },
+  question:  { label: "السؤال شغّال",     cls: "status-live",     canGoTo: ["paused", "reveal", "finished"] },
+  paused:    { label: "الحصة متوقفة",     cls: "status-paused",   canGoTo: ["question", "reveal", "finished"] },
+  reveal:    { label: "مراجعة الإجابات",  cls: "status-reveal",   canGoTo: ["question", "finished"] },
+  finished:  { label: "الجولة خلصت",      cls: "status-finished", canGoTo: ["reopened"] },
+  reopened:  { label: "مفتوح للمتأخرين",  cls: "status-reveal",   canGoTo: ["finished"] },
+};
+
+// ⏱️ ثواني عرض الإجابة قبل الانتقال للسؤال التالي
+const REVEAL_AUTO_MS = 0;
+
+export function useLiveSession(session, setSession) {
+  const [isLive, setIsLive]                     = useState(session?.live?.isLive ?? false);
+  const [liveState, setLiveState]               = useState(session?.live?.state ?? "lobby");
+  const [currentQuestionIndex, setCurrentQIdx]  = useState(session?.live?.currentQuestionIndex ?? 0);
   const [isEndConfirmOpen, setIsEndConfirmOpen] = useState(false);
-  const [timeLeft, setTimeLeft]                 = useState(0);
+  const [reopenOpen, setReopenOpen]             = useState(false);
+  const [now, setNow]                           = useState(() => Date.now());
+  const [autoAdvanceRemaining, setAutoAdvanceRemaining] = useState(null);
 
-  // ── Derived ──────────────────────────────────────
-  const liveSession = sessionsList.find((s) => s.id === liveSessionId) ?? null;
-  const questions   = liveSession?.questions ?? [];
-  const totalQuestions     = questions.length;
-  const currentQuestion    = questions[currentQuestionIndex] ?? null;
+  const sessionId = session?.id;
+
+  // ── Derived ──
+  const rawQuestions = session?.questions;
+  const questions = Array.isArray(rawQuestions) ? rawQuestions
+    : rawQuestions ? Object.values(rawQuestions) : [];
+  const totalQuestions          = questions.length;
+  const currentQuestion         = questions[currentQuestionIndex] ?? null;
   const currentQuestionDuration = Number(currentQuestion?.duration) || 30;
-  const isLastQuestion     = currentQuestionIndex >= totalQuestions - 1;
-  const statusView         = LIVE_STATES[liveState] ?? LIVE_STATES.lobby;
+  const isLastQuestion          = currentQuestionIndex >= totalQuestions - 1;
+  const statusView              = LIVE_STATES[liveState] ?? LIVE_STATES.lobby;
+  const allowAnswerEdit         = session?.reopenedFor?.allowEdit ?? false;
+  const students                = session?.students ?? [];
+  const studentAnswers          = session?.answers ?? {};
 
-  const allowAnswerEdit = liveSession?.reopenedFor?.allowEdit ?? false;
+  // ✅ التقدّم التلقائي (default ON)
+  const autoAdvance = session?.live?.autoAdvance ?? true;
 
-  // ── Students / answers ───────────────────────────
-  const students        = liveSession?.students ?? [];
-  const studentAnswers  = liveSession?.answers ?? {};
+  // tick
+  useEffect(() => {
+    if (liveState !== "question") return;
+    setNow(Date.now());
+    const i = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(i);
+  }, [liveState]);
 
-  const answeredCountFor = useCallback(
-    (studentId) => {
-      const map = studentAnswers[studentId] ?? {};
-      return questions.reduce((n, q) => n + (map[q.id] != null ? 1 : 0), 0);
-    },
-    [studentAnswers, questions]
-  );
+  const timeLeft = useMemo(() => {
+    const live = session?.live;
+    if (!live) return 0;
+    if (live.state !== "question") return live.timeLeft ?? 0;
+    if (!live.startedAt) return live.timeLeft ?? 0;
+    const elapsed = Math.floor((now - live.startedAt) / 1000);
+    return Math.max(0, currentQuestionDuration - elapsed);
+  }, [session?.live, now, currentQuestionDuration]);
 
-  const isStudentFinished = useCallback(
-    (student) => {
-      if (!student) return false;
-      if (student.finishedAt) return true;
-      if (totalQuestions === 0) return false;
-      return answeredCountFor(student.id) >= totalQuestions;
-    },
-    [answeredCountFor, totalQuestions]
-  );
+  // reset state كامل لما الـ session.id يتغيّر
+  useEffect(() => {
+    if (!session?.id) return;
+    setIsLive(session.live?.isLive ?? false);
+    setLiveState(session.live?.state ?? "lobby");
+    setCurrentQIdx(session.live?.currentQuestionIndex ?? 0);
+    setIsEndConfirmOpen(false);
+    setReopenOpen(false);
+  }, [session?.id]);
 
-  const pendingStudents = useMemo(
-    () => students.filter((s) => !isStudentFinished(s)),
-    [students, isStudentFinished]
-  );
+  // sync داخلي
+  useEffect(() => {
+    if (!session?.live) return;
+    setIsLive(session.live.isLive ?? false);
+    setLiveState(session.live.state ?? "lobby");
+    setCurrentQIdx(session.live.currentQuestionIndex ?? 0);
+  }, [session?.live?.isLive, session?.live?.state, session?.live?.currentQuestionIndex]);
+
+  // ── Refs للحماية من race conditions ──
+  const stateRef = useRef(liveState);
+  const indexRef = useRef(currentQuestionIndex);
+  useEffect(() => { stateRef.current = liveState; }, [liveState]);
+  useEffect(() => { indexRef.current = currentQuestionIndex; }, [currentQuestionIndex]);
+
+  const reopenModal = useMemo(() => ({
+    isOpen: reopenOpen,
+    open:   () => setReopenOpen(true),
+    close:  () => setReopenOpen(false),
+  }), [reopenOpen]);
+
+  const answeredCountFor = useCallback((studentId) => {
+    const map = studentAnswers[studentId] ?? {};
+    return questions.reduce((n, q) => n + (map[q.id] != null ? 1 : 0), 0);
+  }, [studentAnswers, questions]);
+
+  const isStudentFinished = useCallback((student) => {
+    if (!student) return false;
+    if (student.finishedAt) return true;
+    if (totalQuestions === 0) return false;
+    return answeredCountFor(student.id) >= totalQuestions;
+  }, [answeredCountFor, totalQuestions]);
+
+  const pendingStudents       = useMemo(() => students.filter((s) => !isStudentFinished(s)), [students, isStudentFinished]);
   const finishedStudentsCount = students.length - pendingStudents.length;
 
-  // ── Guards ───────────────────────────────────────
-  const canTransitionTo = useCallback(
-    (target) => (LIVE_STATES[liveState]?.canGoTo ?? []).includes(target),
-    [liveState]
-  );
+  // ── Guards ──
+  const canTransitionTo = useCallback((target) =>
+    (LIVE_STATES[liveState]?.canGoTo ?? []).includes(target), [liveState]);
+  const canPause  = liveState === "question";
+  const canResume = liveState === "paused";
+  const canReveal = liveState === "question" || liveState === "paused";
+  const canNext   = liveState === "reveal";
+  const canFinish = liveState === "paused" || liveState === "reveal" ||
+                   (liveState === "question" && isLastQuestion);
 
-  const canPause   = liveState === "question";
-  const canResume  = liveState === "paused";
-  const canReveal  = liveState === "question" || liveState === "paused";
-  const canNext    = liveState === "reveal";
-  const canFinish  = liveState === "paused" || liveState === "reveal" ||
-                    (liveState === "question" && isLastQuestion);
-
-  // ── Core transition ──────────────────────────────
-  const goToState = useCallback(
-    (target) => {
-      if (!canTransitionTo(target)) {
-        console.warn(`[useLiveSession] Invalid transition: ${liveState} → ${target}`);
-        return false;
-      }
-      setLiveState(target);
-      return true;
-    },
-    [liveState, canTransitionTo]
-  );
-
-  // ── revealAnswer (قبل الـ effects) ─────────────
-  const revealAnswer = useCallback(() => {
-    if (!canReveal) return false;
-    return goToState("reveal");
-  }, [canReveal, goToState]);
-
-  // ── Timer tick ──────────────────────────────────
-  useEffect(() => {
-    if (liveState !== "question") return;
-    if (timeLeft <= 0) return;
-    const t = setTimeout(() => setTimeLeft((v) => Math.max(0, v - 1)), 1000);
-    return () => clearTimeout(t);
-  }, [liveState, timeLeft]);
-
-  // ── Auto-reveal لما الوقت يخلص ─────────────────
-  useEffect(() => {
-    if (liveState !== "question") return;
-    if (timeLeft > 0) return;
-    if (totalQuestions === 0) return;
-    revealAnswer();
-  }, [liveState, timeLeft, totalQuestions, revealAnswer]);
-
-  // ── Lifecycle: بدء الجلسة ───────────────────────
-  const startLiveSession = (sessionId) => {
-    const target = sessionsList.find((s) => s.id === sessionId);
-    if (!target)                       return false;
-    if (target.status === "completed") { alert("الجلسة دي انتهت بالفعل."); return false; }
-    if (target.status === "draft")     { alert("انشرها (Schedule) الأول."); return false; }
-    if (!target.questions?.length)     { alert("ضيف سؤال واحد على الأقل."); return false; }
-
-    setLiveSessionId(sessionId);
-    setIsLive(true);
-    setLiveState("lobby");
-    setCurrentQIdx(0);
-    setTimeLeft(0);
+  const apply = (updated) => {
+    if (!updated) return false;
+    setSession(updated);
+    if (updated.live) {
+      setIsLive(updated.live.isLive ?? false);
+      setLiveState(updated.live.state ?? "lobby");
+      setCurrentQIdx(updated.live.currentQuestionIndex ?? 0);
+    }
     return true;
   };
 
-  // ── Transitions ─────────────────────────────────
-  const startCountdown  = () => goToState("countdown");
-  const cancelCountdown = () => goToState("lobby");
+  // ── Transitions ──
+  const startLiveSession = async () => {
+    if (!session)             { alert("اعمل الحصة الأول."); return false; }
+    if (totalQuestions === 0) { alert("ضيف سؤال واحد على الأقل."); return false; }
+    return apply(await liveOps.start(sessionId));
+  };
+  const startCountdown  = async () => apply(await liveOps.startCountdown(sessionId));
+  const cancelCountdown = async () => apply(await liveOps.cancelCountdown(sessionId));
 
-  const startQuestion = () => {
+  const startQuestion = async () => {
     if (!canTransitionTo("question")) return false;
-    setTimeLeft(currentQuestionDuration);
-    setLiveState("question");
-    return true;
+    return apply(await liveOps.startQuestion(sessionId));
   };
 
-  const pauseQuestion  = () => goToState("paused");
-  const resumeQuestion = () => goToState("question");
+  const pauseQuestion  = async () => apply(await liveOps.pauseQuestion(sessionId));
+  const resumeQuestion = async () => apply(await liveOps.resumeQuestion(sessionId));
+  const revealAnswer   = async () => apply(await liveOps.revealAnswer(sessionId));
 
-  // ── السؤال التالي ─────────────────────────────────
-  const nextQuestion = () => {
+  const nextQuestion = async () => {
     if (liveState !== "reveal") return false;
-
-    if (isLastQuestion) {
-      finishSession();
-      return true;
-    }
-
-    const nextIdx = currentQuestionIndex + 1;
-    const nextQ   = questions[nextIdx];
-    setCurrentQIdx(nextIdx);
-    setTimeLeft(Number(nextQ?.duration) || 30);
-    setLiveState("question");
-    return true;
+    if (isLastQuestion) return finishSession();
+    return apply(await liveOps.nextQuestion(sessionId));
   };
 
-  // ── إنهاء الجولة ─────────────────────────────────
-  const finishSession = () => {
-    if (liveState !== "finished") {
-      if (!goToState("finished") && liveState !== "question") return false;
-      setLiveState("finished");
-    }
-    if (liveSessionId) {
-      setSessionsList((prev) =>
-        prev.map((s) =>
-          s.id === liveSessionId
-            ? { ...s, status: "completed", endedAt: Date.now() }
-            : s
-        )
-      );
-    }
-    return true;
+  const finishSession = async () => apply(await liveOps.finishRound(sessionId));
+
+  const confirmReopen = async (allowEdit = false) => {
+    if (liveState !== "finished" || pendingStudents.length === 0) return false;
+    const ok = apply(await liveOps.reopen(sessionId, allowEdit));
+    if (ok) setReopenOpen(false);
+    return ok;
   };
 
-  // ── إعادة فتح الجولة للمتأخرين ──────────────────
-  const confirmReopen = (allowEdit = false) => {
-    if (liveState !== "finished") return false;
-    if (pendingStudents.length === 0) return false;
-
-    const studentIds = pendingStudents.map((s) => s.id);
-
-    setSessionsList((prev) =>
-      prev.map((s) =>
-        s.id === liveSessionId
-          ? { ...s, reopenedFor: { at: Date.now(), allowEdit, studentIds } }
-          : s
-      )
-    );
-
-    return goToState("reopened");
-  };
-
-  const closeReopenedRound = () => {
+  const closeReopenedRound = async () => {
     if (liveState !== "reopened") return false;
-    if (liveSessionId) {
-      setSessionsList((prev) =>
-        prev.map((s) =>
-          s.id === liveSessionId ? { ...s, reopenedFor: null } : s
-        )
-      );
+    return apply(await liveOps.closeReopened(sessionId));
+  };
+
+  const setAllowAnswerEdit = async (value) => apply(await liveOps.setAllowEdit(sessionId, value));
+
+  // ── Toggle: Auto-advance ──
+  const setAutoAdvance = async (value) => {
+    const ok = apply(await liveOps.setAutoAdvance(sessionId, value));
+    if (!value) setAutoAdvanceRemaining(null);
+    return ok;
+  };
+
+  // ── 1) Auto-reveal لما الوقت يخلص ──
+  const revealedRef = useRef(-1);
+  useEffect(() => {
+    if (!autoAdvance) return;
+    if (liveState !== "question") return;
+    if (totalQuestions === 0) return;
+    if (timeLeft > 0) return;
+    if (revealedRef.current === currentQuestionIndex) return;
+    revealedRef.current = currentQuestionIndex;
+    revealAnswer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveState, timeLeft, totalQuestions, currentQuestionIndex, autoAdvance]);
+
+  useEffect(() => {
+    revealedRef.current = -1;
+  }, [currentQuestionIndex, session?.id]);
+
+  // ── 2) Auto-advance من reveal للسؤال اللي بعده ──
+  const autoAdvanceTimerRef = useRef(null);
+  const advancedRef = useRef(-1);
+
+  useEffect(() => {
+    // نظّف أي timer قديم
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
     }
-    return goToState("finished");
-  };
 
-  const setAllowAnswerEdit = (value) => {
-    if (!liveSessionId) return;
-    setSessionsList((prev) =>
-      prev.map((s) =>
-        s.id === liveSessionId && s.reopenedFor
-          ? { ...s, reopenedFor: { ...s.reopenedFor, allowEdit: value } }
-          : s
-      )
-    );
-  };
-
-  // ── End confirmation ────────────────────────────
-  const _endLiveSession = ({ markCompleted = false } = {}) => {
-    if (liveSessionId) {
-      setSessionsList((prev) =>
-        prev.map((s) =>
-          s.id === liveSessionId
-            ? {
-                ...s,
-                ...(markCompleted ? { status: "completed", endedAt: Date.now() } : {}),
-                reopenedFor: null,
-              }
-            : s
-        )
-      );
+    if (!autoAdvance) {
+      setAutoAdvanceRemaining(null);
+      return;
     }
-    setLiveSessionId(null);
-    setIsLive(false);
-    setLiveState("lobby");
-    setCurrentQIdx(0);
-    setTimeLeft(0);
-  };
+    if (liveState !== "reveal") {
+      setAutoAdvanceRemaining(null);
+      return;
+    }
+    if (advancedRef.current === currentQuestionIndex) {
+      setAutoAdvanceRemaining(null);
+      return;
+    }
 
+    const totalSeconds = Math.ceil(REVEAL_AUTO_MS / 1000);
+    setAutoAdvanceRemaining(totalSeconds);
+
+    const tickInterval = setInterval(() => {
+      setAutoAdvanceRemaining((v) => (v === null ? null : Math.max(0, v - 1)));
+    }, 1000);
+
+    autoAdvanceTimerRef.current = setTimeout(() => {
+      autoAdvanceTimerRef.current = null;
+      clearInterval(tickInterval);
+      setAutoAdvanceRemaining(null);
+
+      // Safety guards
+      if (stateRef.current !== "reveal") return;
+      if (indexRef.current !== currentQuestionIndex) return;
+      if (advancedRef.current === currentQuestionIndex) return;
+
+      advancedRef.current = currentQuestionIndex;
+
+      if (isLastQuestion) {
+        finishSession();
+      } else {
+        nextQuestion();
+      }
+    }, REVEAL_AUTO_MS);
+
+    return () => {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
+      clearInterval(tickInterval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveState, currentQuestionIndex, autoAdvance, isLastQuestion]);
+
+  useEffect(() => {
+    advancedRef.current = -1;
+  }, [currentQuestionIndex, session?.id]);
+
+  // ── End live ──
   const requestEndLive = () => setIsEndConfirmOpen(true);
   const cancelEndLive  = () => setIsEndConfirmOpen(false);
-  const confirmEndLive = (opts) => {
-    _endLiveSession(opts);
+  const confirmEndLive = async () => {
+    apply(await liveOps.end(sessionId));
     setIsEndConfirmOpen(false);
+    setReopenOpen(false);
+    setAutoAdvanceRemaining(null);
   };
 
   const restartRound = () => {
     setCurrentQIdx(0);
     setLiveState("lobby");
+    setAutoAdvanceRemaining(null);
+  };
+
+  // ── goToState: dispatcher (backward compat) ──
+  const goToState = async (target) => {
+    if (!canTransitionTo(target)) return false;
+    switch (target) {
+      case "countdown": return startCountdown();
+      case "lobby":     return liveState === "countdown" ? cancelCountdown() : false;
+      case "question":  return liveState === "paused" ? resumeQuestion() : startQuestion();
+      case "paused":    return pauseQuestion();
+      case "reveal":    return revealAnswer();
+      case "finished":  return finishSession();
+      default:          return false;
+    }
   };
 
   return {
-    // state
-    isLive,
-    liveSession,
-    liveSessionId,
-    liveState,
-    statusView,
-    currentQuestion,
-    currentQuestionIndex,
-    totalQuestions,
-    isLastQuestion,
-    isEndConfirmOpen,
+    isLive, liveSession: session, liveState, statusView,
+    currentQuestion, currentQuestionIndex, totalQuestions, isLastQuestion,
+    isEndConfirmOpen, timeLeft, currentQuestionDuration,
 
-    // students / answers
-    students,
-    pendingStudents,
-    finishedStudentsCount,
-    answeredCountFor,
-    isStudentFinished,
+    students, pendingStudents, finishedStudentsCount,
+    answeredCountFor, isStudentFinished,
 
-    // reopen
-    allowAnswerEdit,
-    setAllowAnswerEdit,
-    confirmReopen,
-    closeReopenedRound,
+    allowAnswerEdit, setAllowAnswerEdit,
+    reopenModal, confirmReopen, closeReopenedRound,
 
-    // guards
-    canTransitionTo,
-    canPause,
-    canResume,
-    canReveal,
-    canNext,
-    canFinish,
+    canTransitionTo, canPause, canResume, canReveal, canNext, canFinish,
 
-    // transitions
-    startLiveSession,
-    startCountdown,
-    cancelCountdown,
-    startQuestion,
-    pauseQuestion,
-    resumeQuestion,
-    revealAnswer,
-    nextQuestion,
-    finishSession,
-    goToState,
-    restartRound,
+    // ✅ جديد
+    autoAdvance,
+    setAutoAdvance,
+    autoAdvanceRemaining,
+    revealAutoMs: REVEAL_AUTO_MS,
 
-    // end
-    requestEndLive,
-    cancelEndLive,
-    confirmEndLive,
-    timeLeft,
-    currentQuestionDuration,
+    startLiveSession, startCountdown, cancelCountdown,
+    startQuestion, pauseQuestion, resumeQuestion,
+    revealAnswer, nextQuestion, finishSession,
+    goToState, restartRound,
+
+    requestEndLive, cancelEndLive, confirmEndLive,
   };
 }

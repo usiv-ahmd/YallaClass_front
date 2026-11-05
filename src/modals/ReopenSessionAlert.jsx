@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RotateCcw, X, Check } from "lucide-react";
+import { RotateCcw, X, Check, AlertCircle } from "lucide-react";
 
 export default function ReopenSessionAlert({
   pendingCount,
@@ -9,35 +9,46 @@ export default function ReopenSessionAlert({
   onConfirm,
 }) {
   const [allowEdit, setAllowEdit] = useState(defaultAllowEdit);
+  const [error, setError]         = useState(null);
 
   const handleConfirm = () => {
-    onConfirm(allowEdit);
+    setError(null);
+    const ok = onConfirm?.(allowEdit);
+
+    if (ok === false) {
+      setError("مقدرناش نفتح الجولة — راجع إن فيه طلاب متأخرين فعلاً وإن الجولة في حالة finished.");
+      return;
+    }
     onClose();
   };
 
   return (
     <div className="opened-window-backdrop" onClick={onClose}>
-      <div className="card reopen" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <div className="reopen-heading">
-          <div className="reopen-stamp">
-            <RotateCcw size={22} />
+      <div className="card modal-window" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="card-heading">
+          <div className="card-heading-title">
+            <div className="card-icon turquoise"><RotateCcw size={22} /></div>
+            <div>
+              <span className="card-kicker">تأكيد الإنهاء / خطوة أخيرة</span>
+              <h2 className="modal-title">إعادة فتح الجولة</h2>
+            </div>
           </div>
-
-          <div>
-            <span className="reopen-kicker">تأكيد الإنهاء / خطوة أخيرة</span>
-            <h2 id="reopen-title">إعادة فتح الجولة</h2>
-          </div>
-
-          <button className="close-button windowed-close-button" type="button" onClick={onClose} aria-label="إغلاق">
+          <button className="modal-close-button" type="button" onClick={onClose} aria-label="إغلاق">
             <X size={17} />
           </button>
         </div>
 
-        <div className="end-live-content">
+        <div className="modal-content">
           <p>
             هيتفتح لـ <b>{pendingCount}</b> من <b>{totalStudents}</b> طالب لسه
             مكملوش. اللي خلص خلاص مقفول عليه.
           </p>
+
+          {pendingCount === 0 && (
+            <p style={{ color: "#c53030", fontWeight: 600 }}>
+              <AlertCircle size={14} /> مفيش طلاب متأخرين — الزرار المفروض يكون disabled.
+            </p>
+          )}
 
           <label className="reopen-toggle">
             <input type="checkbox" checked={allowEdit} onChange={(e) => setAllowEdit(e.target.checked)}/>
@@ -49,11 +60,15 @@ export default function ReopenSessionAlert({
               : "إجاباته القديمة زي ما هي، هيكمّل الأسئلة الفاضية بس."}
           </p>
 
-          <div className="end-live-actions">
-            <button className="button ReopenSession-button white-background" type="button" onClick={onClose}>
+          {error && (
+            <p style={{ color: "#c53030", fontSize: 13, marginTop: 8 }}>{error}</p>
+          )}
+
+          <div className="modal-actions">
+            <button className="button modal-button white" type="button" onClick={onClose}>
               إلغاء
             </button>
-            <button className="button ReopenSession-button button-primary" type="button" onClick={handleConfirm}>
+            <button className="button modal-button turquoise" type="button" onClick={handleConfirm}>
               <Check size={16} /> افتح الجولة
             </button>
           </div>

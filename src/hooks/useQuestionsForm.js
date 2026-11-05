@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+// hooks/useQuestionsForm.js
+import { useState } from "react";
 
 export function makeId(prefix) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -12,40 +13,65 @@ export function getCorrectIndex(question) {
   return -1;
 }
 
+// ⚠️ لازم يفضل export — InstructorView و QuestionFormWindow بيعتمدوا عليه
 export const QUESTION_DURATIONS = [15, 30, 45, 60, 90, 120];
 
-export default function useQuestionsForm(session) {
+export function useQuestionsForm({ session, updateQuestions }) {
   const [formOpen, setFormOpen]         = useState(false);
   const [text, setText]                 = useState("");
   const [options, setOptions]           = useState(["", "", "", ""]);
   const [correctIndex, setCorrectIndex] = useState(0);
   const [duration, setDuration]         = useState(30);
+  const [editingId, setEditingId]       = useState(null);
 
-  const selectedIdRef = useRef(session?.selectedId);
+  // helper: تصفير الفورم بالكامل
+  function resetForm() {
+    setFormOpen(false);
+    setEditingId(null);
+    setText("");
+    setOptions(["", "", "", ""]);
+    setCorrectIndex(0);
+    setDuration(30);
+  }
 
-  useEffect(() => {
-    if (selectedIdRef.current !== session?.selectedId) {
-      selectedIdRef.current = session?.selectedId;
-      setFormOpen(false);
-      setText("");
-      setOptions(["", "", "", ""]);
-      setCorrectIndex(0);
-      setDuration(30);
-    }
-  }, [session?.selectedId]);
-
-  const rawQuestions = session?.selectedSession?.questions;
+  // ── قراءة الأسئلة من الجلسة الواحدة ────────────────
+  const rawQuestions = session?.questions;
   const questions = rawQuestions
     ? Array.isArray(rawQuestions)
       ? rawQuestions
       : Object.values(rawQuestions)
     : [];
 
-  const commit = (nextQuestions) =>
-    session.updateQuestions(session.selectedId, nextQuestions);
+  // ── حفظ التعديلات على الجلسة (بقى async دلوقتي) ──
+  const commit = async (nextQuestions) => {
+    if (typeof updateQuestions === "function") {
+      await updateQuestions(nextQuestions);
+    }
+  };
 
-  // ── Add ────────────────────────────────────────
-  function addQuestion(event) {
+  // ── فتح الفورم لإضافة سؤال جديد ────────────────────
+  function startAdd() {
+    resetForm();
+    setFormOpen(true);
+  }
+
+  // ── فتح الفورم لتعديل سؤال موجود ────────────────────
+  function startEdit(question) {
+    if (!question) return;
+    setEditingId(question.id);
+    setText(question.question ?? question.text ?? "");
+    const opts =
+      Array.isArray(question.options) && question.options.length >= 2
+        ? [...question.options]
+        : ["", ""];
+    setOptions(opts);
+    setCorrectIndex(Math.max(0, getCorrectIndex(question)));
+    setDuration(Number(question.duration) || 30);
+    setFormOpen(true);
+  }
+
+  // ── Submit: إضافة أو تعديل حسب editingId (async) ─────
+  async function addQuestion(event) {
     event.preventDefault();
 
     const trimmedOptions = options.map((option) => option.trim());
@@ -65,28 +91,47 @@ export default function useQuestionsForm(session) {
 
     const safeDuration = Math.min(120, Math.max(5, Number(duration) || 30));
 
-    const newQuestion = {
-      id: makeId("question"),
-      question: text.trim(),
-      text: text.trim(),
-      options: trimmedOptions,
-      correctOptionIndex: correctIndex,
-      correctAnswer: trimmedOptions[correctIndex],
-      duration: safeDuration,
-      source: "manual",
-      type: "mcq",
-    };
-
-    commit([...questions, newQuestion]);
-
-    setText("");
-    setOptions(["", "", "", ""]);
-    setCorrectIndex(0);
-    setDuration(30);
-    setFormOpen(false);
+    try {
+      if (editingId) {
+        // 🔄 وضع التعديل
+        await commit(
+          questions.map((q) =>
+            q.id === editingId
+              ? {
+                  ...q,
+                  question: text.trim(),
+                  text: text.trim(),
+                  options: trimmedOptions,
+                  correctOptionIndex: correctIndex,
+                  correctAnswer: trimmedOptions[correctIndex],
+                  duration: safeDuration,
+                }
+              : q
+          )
+        );
+      } else {
+        // ➕ وضع الإضافة
+        const newQuestion = {
+          id: makeId("question"),
+          question: text.trim(),
+          text: text.trim(),
+          options: trimmedOptions,
+          correctOptionIndex: correctIndex,
+          correctAnswer: trimmedOptions[correctIndex],
+          duration: safeDuration,
+          source: "manual",
+          type: "mcq",
+        };
+        await commit([...questions, newQuestion]);
+      }
+      resetForm();
+    } catch (e) {
+      console.error("[addQuestion]", e);
+      alert("حصل خطأ أثناء حفظ السؤال، حاول تاني");
+    }
   }
 
-  // ── Options ────────────────────────────────────
+  // ── Options ────────────────────────────────────────
   function updateOption(index, value) {
     setOptions((current) =>
       current.map((option, optionIndex) => (optionIndex === index ? value : option))
@@ -100,9 +145,15 @@ export default function useQuestionsForm(session) {
     );
   }
 
-  // ── Delete a saved question ────────────────────
-  function deleteQuestion(questionId) {
-    commit(questions.filter((item) => item.id !== questionId));
+  // ── Delete (async) ─────────────────────────────────
+  async function deleteQuestion(questionId) {
+    try {
+      await commit(questions.filter((item) => item.id !== questionId));
+      if (editingId === questionId) resetForm();
+    } catch (e) {
+      console.error("[deleteQuestion]", e);
+      alert("حصل خطأ أثناء حذف السؤال، حاول تاني");
+    }
   }
 
   return {
@@ -117,5 +168,10 @@ export default function useQuestionsForm(session) {
     updateOption,
     removeOption,
     deleteQuestion,
+
+    editingId,
+    startAdd,
+    startEdit,
+    cancelForm: resetForm,
   };
 }
