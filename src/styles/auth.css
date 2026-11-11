@@ -1,0 +1,135 @@
+.auth-tilte {
+  font-family: var(--font-display);
+  color: var(--C-yalla-highlight);
+  font-size: 26px;
+}
+
+.role-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.role-selector button {
+  flex: 1;
+  padding: 12px 8px;
+  border-radius: 14px;
+  border: 3px solid var(--C-yalla-border-strong-60);
+  background: var(--C-yalla-bg);
+  color: var(--C-yalla-fg);
+  font-family: var(--font-display);
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.role-selector button.active {
+  background: var(--C-yalla-highlight);
+  color: var(--C-yalla-bg);
+  transform: scale(1.03);
+}
+
+.auth-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: right;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.submit-btn {
+  margin-top: 8px;
+  margin-bottom: 20px;
+  padding: 12px;
+  font-family: var(--font-display);
+  font-size: 19px;
+  border: 3px solid var(--C-yalla-border-strong-60);
+  border-radius: 14px;
+  box-shadow: var(--yalla-center-shadow-sm);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.submit-btn:hover {
+  box-shadow: var(--yalla-center-shadow);
+}
+
+.submit-btn:active {
+  transform: translateY(5px);
+  box-shadow: none;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: var(--C-yalla-text-secondary);
+}
+
+.auth-switch a {
+  display: inline-flex;
+  align-items: center;
+  color: var(--C-yalla-highlight);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+.auth-header h2 {
+  margin: 6px 0 6px;
+}
+.auth-header p {
+  margin: 0;
+  color: var(--C-yalla-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.auth-error {
+  color: var(--C-yalla-alert);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--C-yalla-danger-Sdark-hover);
+  border: 1px solid var(--C-yalla-danger-30);
+  margin-bottom: 12px;
+}
+
+.auth-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+
+.mock-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px dashed var(--C-yalla-purple-40);
+  background: var(--C-yalla-purple-05);
+  color: var(--C-yalla-purple-hover);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s ease, border-color .15s ease;
+}
+.mock-btn:hover {
+  background: var(--C-yalla-purple-10);
+  border-color: var(--C-yalla-purple-hover);
+}

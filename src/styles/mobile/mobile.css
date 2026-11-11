@@ -1,0 +1,31 @@
+/* ==========================================================================
+   YALLA CLASS — MOBILE STYLE LAYER (entry point)
+   --------------------------------------------------------------------------
+   HOW THIS WORKS
+   • The desktop sheets in `src/styles/*.css` are NOT modified. This folder is
+     a pure override layer: same selectors, wrapped in `@media (max-width: …)`.
+   • It is imported ONCE, as the last CSS import in `src/main.jsx`, so that it
+     wins the cascade against the desktop rules (media queries add no
+     specificity — source order is what makes these overrides stick).
+   • Delete the import in `src/main.jsx` and the app is 100% desktop again.
+
+   BREAKPOINTS (edit here + in the partials if you need different ones)
+   • 768px — phones and small tablets in portrait: the "mobile layout".
+   • 420px — small phones: final tightening of type and spacing.
+   • 900×500 landscape — phones held sideways: trims vertical chrome.
+
+   FILES (import order matters, keep the numbering)
+   01-base.css        shell, page, layout, sidebar, cards, buttons, forms
+   02-live-question.css  the big question card shared by student & instructor
+   03-landing-auth.css   landing page, login, register, join screen
+   04-instructor.css     dashboard, questions panel, upload, live controls, table
+   05-student.css        answer results, leaderboard sidebar, podium
+   06-modals.css         every dialog + loading card
+   ========================================================================== */
+
+@import './01-base.css';
+@import './02-live-question.css';
+@import './03-landing-auth.css';
+@import './04-instructor.css';
+@import './05-student.css';
+@import './06-modals.css';

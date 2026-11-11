@@ -1,0 +1,223 @@
+/* ==========================================================================
+   MOBILE LAYER — 02. The question card (shared by student + instructor)
+   Mirrors: global.css §9 "main screen" (the dark-on-white question block)
+   Scope:   @media (max-width: 768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .student-question {
+    padding: 11px;
+    border-radius: 18px;
+  }
+
+  .student-question[data-live-state="paused"] {
+    box-shadow:
+      0 5px 0 var(--C-yalla-border-strong-60),
+      0 0 0 5px var(--C-yalla-highlight),
+      0 0 20px var(--C-yalla-highlight-50);
+  }
+
+  .student-question[data-live-state="reveal"][data-answer-state="correct"] {
+    box-shadow:
+      0 5px 0 var(--C-yalla-border-strong-60),
+      0 0 0 5px var(--C-yalla-success),
+      0 0 20px var(--C-yalla-success-60);
+  }
+
+  .student-question[data-live-state="reveal"][data-answer-state="wrong"] {
+    box-shadow:
+      0 5px 0 var(--C-yalla-border-strong-60),
+      0 0 0 5px var(--C-yalla-info),
+      0 0 20px var(--C-yalla-danger-60);
+  }
+
+  .student-question .session-status {
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 12.5px;
+    border-radius: 12px;
+  }
+
+  .question-meta-row {
+    gap: 5px;
+    row-gap: 6px;
+  }
+
+  .question-header-title {
+    margin: 0;
+    padding: 3px 10px;
+    border-radius: 11px;
+    max-width: 100%;
+  }
+
+  .question-header-title span {
+    font-size: 10px;
+  }
+
+  .question-header-title h2 {
+    font-size: 13px;
+    max-width: 100%;
+  }
+
+  .question-meta-row .mini-label {
+    min-height: 26px;
+    padding: 3px 9px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .question-stats {
+    gap: 4px;
+  }
+
+  .stat-chip {
+    min-height: 26px;
+    padding: 0 7px;
+    gap: 3px;
+    border-width: 2px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .stat-chip small {
+    font-size: 0.72em;
+  }
+
+  .question-main-row {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .question-copy {
+    min-height: 74px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .question-copy h2 {
+    font-size: 17px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  .timer-ring {
+    width: 66px;
+    height: 66px;
+    padding: 5px;
+    border-width: 3px;
+  }
+
+  .timer-ring-inner strong {
+    font-size: 17px;
+  }
+
+  .timer-ring-inner small {
+    font-size: 9px;
+  }
+
+  .timer-ring-inner svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .answer-prompt {
+    margin-top: 10px;
+    padding: 3px 10px;
+    gap: 5px;
+    font-size: 12px;
+    border-radius: 10px;
+  }
+
+  .answer-prompt svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .question-type-tag {
+    font-size: 0.72rem;
+  }
+
+  .answer-grid {
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .answer-option {
+    min-height: 60px;
+    padding: 7px 6px;
+    gap: 6px;
+    border-radius: 14px;
+    font-size: 16px;
+    line-height: 1.35;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  :is(button, a, input).answer-option:active:not(:disabled) {
+    transform: none;
+    box-shadow: 0 2px 0 var(--C-yalla-border-strong-60);
+  }
+
+  .answer-option-key {
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+  }
+
+  .answer-option-text {
+    overflow-wrap: anywhere;
+  }
+
+  .answer-option.answer-option-correct,
+  .answer-option.answer-option-wrong {
+    outline-width: 3px;
+    outline-offset: 1px;
+  }
+}
+
+/* ==========================================================================
+   Small phones
+   ========================================================================== */
+@media (max-width: 420px) {
+  .student-question {
+    padding: 9px;
+    border-radius: 16px;
+  }
+
+  .question-copy h2 {
+    font-size: 15.5px;
+  }
+
+  .timer-ring {
+    width: 60px;
+    height: 60px;
+  }
+
+  .timer-ring-inner strong {
+    font-size: 15px;
+  }
+
+  .answer-grid {
+    gap: 7px;
+  }
+
+  .answer-option {
+    min-height: 56px;
+    font-size: 15px;
+    border-radius: 13px;
+  }
+
+  .answer-option-key {
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+  }
+
+  .stat-chip {
+    font-size: 11px;
+    min-height: 24px;
+    padding: 0 6px;
+  }
+}
