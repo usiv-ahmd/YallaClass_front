@@ -158,3 +158,17 @@
   font-family: var(--font-body);
   font-weight: 600;
 }
+
+.command-eyebrow {
+  --element-color: ;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--C-yalla-surface);
+  color: var(--element-color);
+  font-size: 14px;
+  border: 2px solid var(--C-yalla-border-strong-60);
+  border-radius: 10px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}

@@ -45,7 +45,7 @@ export default function CommandTargetPicker({ command, label, emoji, players, se
           </button>
         </div>
 
-        <div className="card-eyebrow" style={{ "--element-color": themeColor }}>
+        <div className="command-eyebrow" style={{ "--element-color": themeColor }}>
           {subtitle}
         </div>
 
