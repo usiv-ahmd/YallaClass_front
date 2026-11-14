@@ -109,17 +109,8 @@
   2.Layout
   ========================================= */
 
-.session-workspace, .live-workspace {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  gap: clamp(14px, 2vw, 20px);
-  min-width: 0;
-  width: 100%;
-}
-
-.session-workspace .questions,
-.session-workspace .boards {
+.workspace .questions,
+.workspace .boards {
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(270px, .92fr);
   gap: 27px;
@@ -621,6 +612,36 @@
   color: var(--C-yalla-bg);
 }
 
+.points-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 12px;
+  border: var(--yalla-border);
+  border-radius: var(--yalla-radius-sm);
+  background: var(--C-yalla-fg);
+  color: var(--C-yalla-bg);
+}
+.points-input-wrap svg { color: var(--C-yalla-highlight); flex: 0 0 auto; }
+.points-input-wrap input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--C-yalla-bg);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  outline: none;
+}
+.points-unit {
+  color: var(--C-yalla-grey-muted-strong);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
 /* =========================================
   7.Students Table (Leaderboard)
   ========================================= */
@@ -1095,36 +1116,6 @@
   color: var(--C-yalla-bg);
   box-shadow: 2px 2px 0 var(--C-yalla-border-strong-60);
   transform: translate(-1px, -1px);
-}
-
-.points-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 46px;
-  padding: 0 12px;
-  border: var(--yalla-border);
-  border-radius: var(--yalla-radius-sm);
-  background: var(--C-yalla-fg);
-  color: var(--C-yalla-bg);
-}
-.points-input-wrap svg { color: var(--C-yalla-highlight); flex: 0 0 auto; }
-.points-input-wrap input {
-  flex: 1 1 auto;
-  min-width: 0;
-  height: 40px;
-  border: none;
-  background: transparent;
-  color: var(--C-yalla-bg);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
-  outline: none;
-}
-.points-unit {
-  color: var(--C-yalla-grey-muted-strong);
-  font-size: 0.85rem;
-  font-weight: 700;
 }
 
 /* ── True/False fields ─────────────── */

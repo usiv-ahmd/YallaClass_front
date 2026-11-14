@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Marhey:wght@700&family=Readex+Pro:wght@400;600&display=swap');
+/* temporary */
 @import './pages.css';
+@import './instructor-page.css';
+@import './student-page.css';
+/* temporary */
+
 :root {
   --C-yalla-primary: #0FB5A6;
   --C-yalla-primary-strong: #0A8C80;
@@ -142,6 +147,16 @@
 *::-webkit-scrollbar {
   display: none;
 }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
 
 html {
   scroll-padding-top: env(safe-area-inset-top, 0px);
@@ -168,7 +183,7 @@ body {
   overflow: hidden;
   background: linear-gradient(160deg,var(--C-yalla-danger-soft),var(--C-yalla-bg));
   padding: 20px 16px;
-  max-width: 700px;
+  max-width: 1000px;
 }
 .screen::before {
   content: "";
@@ -628,6 +643,19 @@ button {
   padding: 4px 12px;
   margin-bottom: 10px;
 }
+.card-eyebrow {
+  --element-color: ;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--C-yalla-surface);
+  color: var(--element-color);
+  font-size: 14px;
+  border: 2px solid var(--C-yalla-border-strong-60);
+  border-radius: 10px;
+  padding: 4px 12px;
+  margin-bottom: 10px;
+}
 .eyebrow-star {
   display: inline-flex;
   align-items: center;
@@ -763,6 +791,16 @@ button {
   align-items: center;
   justify-content: center;
   margin: auto;
+  width: 100%;
+}
+.workspace {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: clamp(14px, 2vw, 20px);
+  min-width: 0;
   width: 100%;
 }
 .sidebar {
@@ -1386,9 +1424,3 @@ input:-webkit-autofill:active:not(:disabled) {
   transform: translateY(6px);
   box-shadow: none;
 }
-
-
-/* new */
-.mt-6  { margin-top: 6px; }
-.mb-12 { margin-bottom: 12px; }
-.emoji-22 { font-size: 22px; }

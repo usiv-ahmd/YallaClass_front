@@ -9,16 +9,11 @@ import UploadPanel from "../components/instructor/UploadPanel.jsx";
 import QuestionFormWindow from "../components/modals/QuestionFormWindow.jsx";
 import Loading from "../components/ui/Loading.jsx";
 
-export default function QuizEditorPage() {
+function QuizEditorPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
   const { quiz, asSession, loading, error, saveMeta, updateQuestions } = useQuiz(quizId);
-
-  const question = useQuestionsForm({
-    session: asSession,
-    updateQuestions,
-  });
-
+  const question = useQuestionsForm({ quiz: asSession, updateQuestions });
   const [metaOpen, setMetaOpen] = useState(false);
   const [metaDraft, setMetaDraft] = useState({ title: "", subject: "", tags: "" });
   const [metaError, setMetaError] = useState(null);
@@ -71,7 +66,7 @@ export default function QuizEditorPage() {
           <p className="error-alert">
             {error || "الكويز مش موجود"}
           </p>
-          <button className="button button-primary turquoise" type="button" onClick={() => navigate("/library")}>
+          <button className="button button-primary turquoise" onClick={() => navigate("/library")} type="button">
             <ArrowRight size={16} /> رجوع للمكتبة
           </button>
         </div>
@@ -96,7 +91,7 @@ export default function QuizEditorPage() {
         </div>
 
         <div className="heading-meta">
-          <button className="button button-primary ghost" type="button" onClick={() => setMetaOpen(true)}>
+          <button className="button button-primary ghost" onClick={() => setMetaOpen(true)} type="button">
             <Settings2 size={15} /> تعديل البيانات
           </button>
           <Link className="button button-primary ghost" to="/library">
@@ -107,7 +102,7 @@ export default function QuizEditorPage() {
 
       <main className="dashboard">
         <div className="layout">
-          <div className="session-workspace">
+          <div className="workspace">
             {quiz.questionCount === 0 && (
               <div className="card stack-card">
                 <div className="card-heading">
@@ -142,8 +137,8 @@ export default function QuizEditorPage() {
       )}
 
       {metaOpen && (
-        <div className="opened-window-backdrop" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setMetaOpen(false); }}>
-          <section className="card modal-window" role="dialog" aria-modal="true">
+        <div className="opened-window-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) setMetaOpen(false); }} role="presentation">
+          <section aria-modal="true" className="card modal-window" role="dialog">
             <div className="card-heading">
               <div className="card-heading-title">
                 <div className="card-icon turquoise">
@@ -158,7 +153,7 @@ export default function QuizEditorPage() {
                   </h2>
                 </div>
               </div>
-              <button className="modal-close-button" type="button" onClick={() => setMetaOpen(false)} aria-label="إغلاق">
+              <button aria-label="إغلاق" className="modal-close-button" onClick={() => setMetaOpen(false)} type="button">
                 <X size={17} />
               </button>
             </div>
@@ -166,17 +161,17 @@ export default function QuizEditorPage() {
             <form className="modal-content" onSubmit={handleSaveMeta}>
               <label>العنوان</label>
               <div className="input-wrap">
-                <input maxLength={80} required type="text" value={metaDraft.title} onChange={(e) => setMetaDraft({ ...metaDraft, title: e.target.value })} />
+                <input maxLength={80} onChange={(e) => setMetaDraft({ ...metaDraft, title: e.target.value })} required type="text" value={metaDraft.title} />
               </div>
 
               <label>المادة / الصف</label>
               <div className="input-wrap">
-                <input type="text" value={metaDraft.subject} onChange={(e) => setMetaDraft({ ...metaDraft, subject: e.target.value })} />
+                <input onChange={(e) => setMetaDraft({ ...metaDraft, subject: e.target.value })} type="text" value={metaDraft.subject} />
               </div>
 
               <label>وسوم (مفصولة بفواصل)</label>
               <div className="input-wrap">
-                <input type="text" value={metaDraft.tags} onChange={(e) => setMetaDraft({ ...metaDraft, tags: e.target.value })} />
+                <input onChange={(e) => setMetaDraft({ ...metaDraft, tags: e.target.value })} type="text" value={metaDraft.tags} />
               </div>
 
               {metaError && <p className="error-alert">
@@ -184,7 +179,7 @@ export default function QuizEditorPage() {
               </p>}
 
               <div className="modal-actions">
-                <button className="button modal-button white" type="button" onClick={() => setMetaOpen(false)}>
+                <button className="button modal-button white" onClick={() => setMetaOpen(false)} type="button">
                   إلغاء
                 </button>
                 <button className="button modal-button turquoise" disabled={metaBusy} type="submit">
@@ -199,3 +194,5 @@ export default function QuizEditorPage() {
     </div>
   );
 }
+
+export default QuizEditorPage;

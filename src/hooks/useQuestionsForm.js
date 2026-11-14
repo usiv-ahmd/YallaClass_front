@@ -3,7 +3,7 @@ import { useState } from "react";
 import { QUESTION_TYPES, DEFAULT_POINTS, MAX_POINTS, MIN_POINTS } from "../constants/questions.js";
 import { makeId, getCorrectIndex, clampNumber, clampDuration } from "../utils/questions.js";
 
-export function useQuestionsForm({ quiz, updateQuestions }) {
+function useQuestionsForm({ quiz, updateQuestions }) {
   const [formOpen, setFormOpen] = useState(false);
   const [type, setTypeState] = useState("mcq");
   const [text, setText] = useState("");
@@ -124,7 +124,7 @@ export function useQuestionsForm({ quiz, updateQuestions }) {
                   options: finalOptions,
                   correctOptionIndex: finalCorrectIndex,
                   duration: safeDuration,
-                  points: safePoints,
+                  weight: safePoints,
                 }
               : q
           )
@@ -137,7 +137,7 @@ export function useQuestionsForm({ quiz, updateQuestions }) {
           options: finalOptions,
           correctOptionIndex: finalCorrectIndex,
           duration: safeDuration,
-          points: safePoints,
+          weight: safePoints,
         };
         await commit([...questions, newQuestion]);
       }
@@ -186,3 +186,5 @@ export function useQuestionsForm({ quiz, updateQuestions }) {
     cancelForm: resetForm,
   };
 }
+
+export { useQuestionsForm };

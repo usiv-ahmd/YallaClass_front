@@ -1,6 +1,6 @@
 // src/modals/QuestionFormWindow.jsx
 import { X, Plus, Minus, FilePen, FilePlus, ListChecks, CheckCircle2, Zap } from "lucide-react";
-import { QUESTION_TYPES, MAX_WEIGHT, MIN_WEIGHT, MAX_DEGREE, MIN_DEGREE } from "../../constants/questions.js";
+import { QUESTION_TYPES, MAX_POINTS, MIN_POINTS } from "../../constants/questions.js";
 
 export default function QuestionFormWindow({ question, sessionId }) {
   const isEditing = Boolean(question.editingId);
@@ -8,7 +8,7 @@ export default function QuestionFormWindow({ question, sessionId }) {
 
   return (
     <div className="opened-window-backdrop" onMouseDown={(e) => e.target === e.currentTarget && question.cancelForm()} role="presentation">
-      <section className="card modal-window" role="dialog" aria-labelledby="question-form-title" aria-modal="true">
+      <section aria-labelledby="question-form-title" aria-modal="true" className="card modal-window" role="dialog">
         <div className="card-heading">
           <div className="card-heading-title">
             <div className="card-icon turquoise">
@@ -18,12 +18,12 @@ export default function QuestionFormWindow({ question, sessionId }) {
               <span className="card-kicker">
                 {isEditing ? "تعديل السؤال" : "سؤال جديد / إضافة يدوية"}
               </span>
-              <h2 id="question-form-title" className="modal-title">
+              <h2 className="modal-title" id="question-form-title">
                 {isEditing ? "تعديل السؤال" : "سؤال جديد"}
               </h2>
             </div>
           </div>
-          <button type="button" className="modal-close-button" onClick={question.cancelForm} aria-label="إغلاق">
+          <button aria-label="إغلاق" className="modal-close-button" onClick={question.cancelForm} type="button">
             <X size={17} />
           </button>
         </div>
@@ -31,12 +31,12 @@ export default function QuestionFormWindow({ question, sessionId }) {
         <form className="modal-content" onSubmit={question.addQuestion}>
           <label>نوع السؤال</label>
           <div className="type-selector">
-            <button type="button" className={`type-chip${question.type === "mcq" ? " selected" : ""}`} onClick={() => question.setType("mcq")} aria-pressed={question.type === "mcq"}>
+            <button aria-pressed={question.type === "mcq"} className={`type-chip${question.type === "mcq" ? " selected" : ""}`} onClick={() => question.setType("mcq")} type="button">
               <ListChecks size={15} />
               <span>اختيار من متعدد</span>
             </button>
 
-            <button type="button" className={`type-chip${question.type === "true_false" ? " selected" : ""}`} onClick={() => question.setType("true_false")} aria-pressed={question.type === "true_false"}>
+            <button aria-pressed={question.type === "true_false"} className={`type-chip${question.type === "true_false" ? " selected" : ""}`} onClick={() => question.setType("true_false")} type="button">
               <CheckCircle2 size={15} />
               <span>صح / غلط</span>
             </button>
@@ -44,7 +44,7 @@ export default function QuestionFormWindow({ question, sessionId }) {
 
           <label>نص السؤال</label>
           <div className="question-input-wrap">
-            <textarea required rows={2} maxLength={240} value={question.text} onChange={(e) => question.setText(e.target.value)} placeholder="اكتب السؤال بوضوح..." />
+            <textarea maxLength={240} onChange={(e) => question.setText(e.target.value)} placeholder="اكتب السؤال بوضوح..." required rows={2} value={question.text} />
           </div>
 
           {question.type === "mcq" && (
@@ -53,13 +53,13 @@ export default function QuestionFormWindow({ question, sessionId }) {
               <div className="answer-options-grid">
                 {question.options.map((option, index) => (
                   <div className={`answer-option-field ${question.correctIndex === index ? "is-correct" : ""}`} key={index}>
-                    <input type="radio" className="correct-radio" name={`correct-answer-${sessionId}`} checked={question.correctIndex === index} onChange={() => question.setCorrectIndex(index)} />
+                    <input checked={question.correctIndex === index} className="correct-radio" name={`correct-answer-${sessionId}`} onChange={() => question.setCorrectIndex(index)} type="radio" />
                     <span className="option-letter">
                       {String.fromCharCode(65 + index)}
                     </span>
-                    <input type="text" className="option-input" required maxLength={120} value={option} onChange={(e) => question.updateOption(index, e.target.value)} placeholder={`الخيار ${index + 1}`} />
+                    <input className="option-input" maxLength={120} onChange={(e) => question.updateOption(index, e.target.value)} placeholder={`الخيار ${index + 1}`} required type="text" value={option} />
                     {question.options.length > 2 && (
-                      <button type="button" className="small-icon-button red-icon" onClick={() => question.removeOption(index)} aria-label={`حذف الخيار ${index + 1}`}>
+                      <button aria-label={`حذف الخيار ${index + 1}`} className="small-icon-button red-icon" onClick={() => question.removeOption(index)} type="button">
                         <Minus size={14} />
                       </button>
                     )}
@@ -67,7 +67,7 @@ export default function QuestionFormWindow({ question, sessionId }) {
                 ))}
               </div>
               {question.options.length < 6 && (
-                <button type="button" className="small-icon-button blue-icon" onClick={() => question.setOptions((cur) => [...cur, ""])} aria-label="إضافة خيار">
+                <button aria-label="إضافة خيار" className="small-icon-button blue-icon" onClick={() => question.setOptions((cur) => [...cur, ""])} type="button">
                   <Plus size={14} />
                 </button>
               )}
@@ -80,7 +80,7 @@ export default function QuestionFormWindow({ question, sessionId }) {
               <div className="answer-options-grid answer-options-grid--tf">
                 {["صح", "غلط"].map((option, index) => (
                   <label className={"answer-option-field answer-option-field--tf " + (index === 0 ? "is-true" : "is-false") + (question.correctIndex === index ? " is-correct" : "")} key={index}>
-                    <input type="radio" className="hidden-radio" name={`correct-answer-${sessionId}`} checked={question.correctIndex === index} onChange={() => question.setCorrectIndex(index)} />
+                    <input checked={question.correctIndex === index} className="hidden-radio" name={`correct-answer-${sessionId}`} onChange={() => question.setCorrectIndex(index)} type="radio" />
                     <span className="option-letter">
                       {index === 0 ? "✓" : "✗"}
                     </span>
@@ -93,32 +93,21 @@ export default function QuestionFormWindow({ question, sessionId }) {
             </>
           )}
 
-          <label htmlFor="question-weight">
-            وزن السؤال (النقاط)
+          <label htmlFor="question-points">
+            درجة السؤال (النقاط)
           </label>
-          <div className="weight-input-wrap">
+          <div className="points-input-wrap">
             <Zap size={15} />
-            <input id="question-weight" type="number" min={MIN_WEIGHT} max={MAX_WEIGHT} step={1} value={question.weight} onChange={(e) => question.setWeight(e.target.value)} />
-            <span className="weight-unit">
+            <input id="question-points" max={MAX_POINTS} min={MIN_POINTS} onChange={(e) => question.setPoints(e.target.value)} step={1} type="number" value={question.points} />
+            <span className="points-unit">
               نقطة
-            </span>
-          </div>
-
-          <label htmlFor="question-degree">
-            درجة السؤال
-          </label>
-          <div className="weight-input-wrap">
-            <Zap size={15} />
-            <input id="question-degree" type="number" min={MIN_DEGREE} max={MAX_DEGREE} step={1} value={question.degree} onChange={(e) => question.setDegree(e.target.value)} />
-            <span className="weight-unit">
-              درجة
             </span>
           </div>
 
           <label>مدة السؤال (بالثواني)</label>
           <div className="duration-picker">
             {typeConfig.durations.map((sec) => (
-              <button type="button" className={`duration-chip${Number(question.duration) === sec ? " selected" : ""}`} onClick={() => question.setDuration(sec)} key={sec}>
+              <button className={`duration-chip${Number(question.duration) === sec ? " selected" : ""}`} key={sec} onClick={() => question.setDuration(sec)} type="button">
                 <b>{sec}</b>
                 <small>ث</small>
               </button>
@@ -126,10 +115,10 @@ export default function QuestionFormWindow({ question, sessionId }) {
           </div>
 
           <div className="modal-actions">
-            <button type="button" className="button modal-button ghost" onClick={question.cancelForm}>
+            <button className="button modal-button ghost" onClick={question.cancelForm} type="button">
               إلغاء
             </button>
-            <button type="submit" className="button modal-button turquoise">
+            <button className="button modal-button turquoise" type="submit">
               {isEditing ? "حفظ التعديلات" : "إضافة السؤال"}
             </button>
           </div>

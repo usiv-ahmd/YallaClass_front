@@ -7,7 +7,7 @@ const CAN_CONTROL = ["OWNER", "TEACHER", "ASSISTANT"];
 const COMMAND_RULES = {
   gift: { maxUses: 1, amount: 5, requiresTarget: true, canSelfTarget: false },
   thief: { maxUses: 1, percent: 0.15, min: 5, max: 15, requiresTarget: true, canSelfTarget: false },
-  rocket: { maxUses: 1, multiplier: 2, requiresTarget: false, canSelfTarget: false },
+  rocket: { maxUses: 1, multiplier: 2, requiresTarget: true, canSelfTarget: false },
 };
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -135,7 +135,7 @@ function computeAnswerResult({ question, selectedOption, elapsedMs, student }) {
   };
 }
 
-export const sessionMock = {
+const sessionMock = {
   async list() {
     await delay();
     const user = requireOrg();
@@ -449,7 +449,6 @@ export const sessionMock = {
     return { data: persistAndBroadcast(updated) };
   },
 
-  // ✅ NEW: كان ناقص — بيتنادى من زر "اعرض الإجابة"
   async reveal(sessionId) {
     await delay();
     const user = requireRole(...CAN_CONTROL);
@@ -593,7 +592,7 @@ export const sessionMock = {
     const elapsedMs = Date.now() - session.live.startedAt;
     const result = computeAnswerResult({ question: q, selectedOption, elapsedMs, student });
 
-    const rocketMultiplier = student.rocketActive ? COMMAND_RULES.rocket.multiplier : 1;
+    const rocketMultiplier = student.rocketActive ? (1 / COMMAND_RULES.rocket.multiplier) : 1;
     const finalPoints = result.points * rocketMultiplier;
 
     const answer = {
@@ -604,7 +603,7 @@ export const sessionMock = {
       isCorrect: result.isCorrect,
       points: finalPoints,
       basePoints: result.points,
-      rocketApplied: rocketMultiplier > 1,
+      rocketApplied: rocketMultiplier !== 1,
       speedBonus: result.speedBonus,
       responseMs: result.responseMs,
       streak: result.streak,
@@ -713,8 +712,10 @@ export const sessionMock = {
 
     if (command === "rocket") {
       eventValue = rules.multiplier;
-      nextStudents = session.students.map((s) => (s.id === actor.id ? { ...s, rocketActive: true } : s));
-      eventMetadata = { multiplier: rules.multiplier };
+      nextStudents = session.students.map((s) =>
+        s.id === target.id ? { ...s, rocketActive: true } : s
+      );
+      eventMetadata = { multiplier: rules.multiplier, targetName: target.name };
     }
 
     const q = currentQuestion(session);
@@ -742,3 +743,5 @@ export const sessionMock = {
     return { data: { event, session: recomputeRanks(updated) } };
   },
 };
+
+export { sessionMock };

@@ -197,3 +197,21 @@
 
 /* ── Command Target Picker ───────────────────────────────── */
 .cmd-picker-icon { font-size: 24px; }
+
+.commands-action-wrap {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+.commands-action-btn {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* new */
+.mt-6  { margin-top: 6px; }
+.mb-12 { margin-bottom: 12px; }
+.emoji-22 { font-size: 22px; }
+.students-table {background: var(--C-yalla-surface); border-radius: var(--yalla-radius-sm); padding: 5px 10px; border: 2px solid var(--C-yalla-border-strong-60);}
+.screen-heading {background: var(--C-yalla-surface); border-radius: var(--yalla-radius-sm); padding: 5px 10px 10px; border: 2px solid var(--C-yalla-border-strong-60);}
+.single-card {max-width: 1000px;}

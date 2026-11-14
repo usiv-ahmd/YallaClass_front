@@ -4,11 +4,12 @@ import { sessionApi } from "../api/session.api";
 import { subscribeRemoteSession } from "../providers/mock/realtimeAdapter";
 
 const STORAGE_PREFIX = "yalla-class:player:";
+const COUNTDOWN_SECONDS = 3;
 
 const COMMAND_RULES = {
-  gift:   { maxUses: 1, requiresTarget: true,  label: "هدية",   emoji: "🎁" },
-  thief:  { maxUses: 1, requiresTarget: true,  label: "سرقة",   emoji: "🥷" },
-  rocket: { maxUses: 1, requiresTarget: false, label: "صاروخ",  emoji: "🚀" },
+  gift:   { maxUses: 1, requiresTarget: true, label: "هدية" },
+  thief:  { maxUses: 1, requiresTarget: true, label: "سرقة" },
+  rocket: { maxUses: 1, requiresTarget: true, label: "صاروخ" },
 };
 
 function countCommandUses(session, studentId, command) {
@@ -17,7 +18,7 @@ function countCommandUses(session, studentId, command) {
   ).length;
 }
 
-export function storePlayerSeat(sessionId, student) {
+function storePlayerSeat(sessionId, student) {
   try {
     sessionStorage.setItem(STORAGE_PREFIX + sessionId, JSON.stringify(student));
   } catch {}
@@ -38,7 +39,7 @@ function clearStoredPlayer(sessionId) {
   } catch {}
 }
 
-export function usePlayerSession(sessionId) {
+function usePlayerSession(sessionId) {
   const [student, setStudent] = useState(() => loadStoredPlayer(sessionId));
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,6 +50,8 @@ export function usePlayerSession(sessionId) {
   const [now, setNow] = useState(() => Date.now());
   const nowRef = useRef(now);
   nowRef.current = now;
+
+  const liveState = session?.live?.state;
 
   const refresh = useCallback(async () => {
     if (!sessionId) return;
@@ -61,28 +64,6 @@ export function usePlayerSession(sessionId) {
       setLoading(false);
     }
   }, [sessionId]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    return subscribeRemoteSession(sessionId, (fresh) => {
-      const myAnswers = student ? fresh.answers?.[student.id] || {} : {};
-      setSession({
-        ...fresh,
-        answers: { [student?.id || "__none__"]: myAnswers },
-      });
-    });
-  }, [sessionId, student?.id]);
-
-  const liveState = session?.live?.state;
-  useEffect(() => {
-    if (liveState !== "question") return;
-    const i = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(i);
-  }, [liveState]);
 
   const currentQuestion = useMemo(() => {
     if (!session?.questions || !session.live) return null;
@@ -99,9 +80,17 @@ export function usePlayerSession(sessionId) {
     return Math.max(0, currentQuestion.duration - elapsedSec);
   }, [session?.live, currentQuestion, now]);
 
-  useEffect(() => {
-    setSubmittedForCurrent(false);
-  }, [session?.live?.currentQuestionIndex]);
+  const countdownRemaining = useMemo(() => {
+    if (!session?.live || session.live.state !== "countdown") return 0;
+    if (!session.live.startedAt) return COUNTDOWN_SECONDS;
+    const elapsedSec = (now - session.live.startedAt) / 1000;
+    return Math.max(0, Math.ceil(COUNTDOWN_SECONDS - elapsedSec));
+  }, [session?.live, now]);
+
+  const liveStudent = useMemo(() => {
+    if (!session || !student) return student;
+    return session.students?.find((s) => s.id === student.id) || student;
+  }, [session, student]);
 
   const myAnswers = useMemo(() => {
     if (!session || !student) return {};
@@ -235,11 +224,37 @@ export function usePlayerSession(sessionId) {
     return me?.rank ?? null;
   }, [session, student]);
 
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    return subscribeRemoteSession(sessionId, (fresh) => {
+      const myAnswers = student ? fresh.answers?.[student.id] || {} : {};
+      setSession({
+        ...fresh,
+        answers: { [student?.id || "__none__"]: myAnswers },
+      });
+    });
+  }, [sessionId, student?.id]);
+
+  useEffect(() => {
+    if (liveState !== "question" && liveState !== "countdown") return;
+    const i = setInterval(() => setNow(Date.now()), 250);
+    return () => clearInterval(i);
+  }, [liveState]);
+
+  useEffect(() => {
+    setSubmittedForCurrent(false);
+  }, [session?.live?.currentQuestionIndex]);
+
   return {
     session,
-    student,
+    student: liveStudent,
     currentQuestion,
     timeLeft,
+    countdownRemaining,
     currentAnswer,
     hasAnsweredCurrent,
     myAnswers,
@@ -262,7 +277,7 @@ export function usePlayerSession(sessionId) {
     commandsUsed,
     canUseCommand,
     useCommand,
-    rocketActive: Boolean(student?.rocketActive),
+    rocketActive: Boolean(liveStudent?.rocketActive),
     commandRules: COMMAND_RULES,
 
     join,
@@ -272,3 +287,5 @@ export function usePlayerSession(sessionId) {
     refresh,
   };
 }
+
+export { storePlayerSeat, usePlayerSession };
