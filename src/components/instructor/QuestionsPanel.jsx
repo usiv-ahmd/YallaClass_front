@@ -35,9 +35,9 @@ export default function QuestionsPanel({ question, description }) {
                   </span>
                   <span className={`question-info ${item.type === "true_false" ? "turquoise" : "blue"}`}>{item.type === "true_false" ? "صح/غلط" : "اختيار"}</span>
 
-                  {item.points > 0 && (
-                    <span className="question-info highlight" title={`وزن السؤال ${item.points} نقطة`}>
-                      <Zap size={11} /> {item.points} نقطة
+                  {item.weight > 0 && (
+                    <span className="question-info highlight" title={`وزن السؤال ${item.weight} نقطة`}>
+                      <Zap size={11} /> {item.weight} نقطة
                     </span>
                   )}
                   {qDuration > 0 && (

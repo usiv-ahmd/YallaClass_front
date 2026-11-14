@@ -37,7 +37,6 @@
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Header */
 .lb-header {
   display: flex;
   align-items: center;
@@ -72,7 +71,6 @@
   animation: statusBlink 1s infinite;
 }
 
-/* List */
 .lb-list {
   display: flex;
   flex-direction: column;
@@ -121,7 +119,6 @@
   color: var(--C-yalla-highlight);
 }
 
-/* ألوان المراكز الأولى */
 .lb-row:nth-child(1) .lb-row__rank { background: var(--C-yalla-gold); color: var(--C-yalla-bg); }
 .lb-row:nth-child(2) .lb-row__rank { background: var(--C-yalla-tint); color: var(--C-yalla-bg); }
 .lb-row:nth-child(3) .lb-row__rank { background: var(--C-yalla-bronze); color: var(--C-yalla-bg); }
@@ -177,7 +174,6 @@
   direction: ltr;
 }
 
-/* Footer */
 .lb-footer {
   padding: 14px;
   background: var(--C-yalla-surface-raised);

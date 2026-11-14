@@ -2,7 +2,7 @@
 import { QUESTION_TYPES } from "../constants/questions.js";
 
 export function makeId(prefix) {
-  return `${prefix}-${crypto.randomUUID()}`;
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 export function getCorrectIndex(question) {
@@ -14,14 +14,12 @@ export function getCorrectIndex(question) {
 }
 
 export function clampNumber(value, min, max, fallback) {
-  if (value === null || value === undefined || value === "") return fallback;
   const n = Math.round(Number(value));
   if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, n));
 }
 
 export function clampDuration(value, durations, fallback) {
-  if (!Array.isArray(durations) || durations.length === 0) return fallback;
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return fallback;
   if (durations.includes(n)) return n;

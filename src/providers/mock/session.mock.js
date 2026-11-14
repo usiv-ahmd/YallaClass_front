@@ -117,10 +117,9 @@ function computeAnswerResult({ question, selectedOption, elapsedMs, student }) {
   const durationMs = question.duration * 1000;
   const remainingMs = Math.max(0, durationMs - elapsedMs);
   const isCorrect = selectedOption === question.correctOptionIndex;
-  const questionPoints = question.points ?? question.weight ?? 0;
 
-  const basePoints = isCorrect ? questionPoints : 0;
-  const speedBonus = isCorrect ? Math.round(questionPoints * 0.5 * (remainingMs / durationMs)) : 0;
+  const basePoints = isCorrect ? question.weight : 0;
+  const speedBonus = isCorrect ? Math.round(question.weight * 0.5 * (remainingMs / durationMs)) : 0;
   const points = basePoints + speedBonus;
 
   const newStreak = isCorrect ? (student.currentStreak || 0) + 1 : 0;
@@ -149,17 +148,6 @@ export const sessionMock = {
     const user = requireOrg();
     const session = ownSessionOrThrow(sessionId, user);
     return { data: recomputeRanks(session) };
-  },
-
-  async getPublicById(sessionId) {
-    await delay();
-    const session = db.sessions.findById(sessionId);
-    if (!session) throw { status: 404, message: "الحصة مش موجودة" };
-    const sanitized = {
-      ...session,
-      answers: {},
-    };
-    return { data: recomputeRanks(sanitized) };
   },
 
   async getByCode(code) {
@@ -289,7 +277,7 @@ export const sessionMock = {
       nickname: String(nickname || "").trim() || cleanName,
       sectionId: sectionId || null,
       avatar: {
-        hairColor: avatar?.hairColor || s.avatar?.hairColor || "#FF5A5F",
+        hairColor: avatar?.hairColor || "#FF5A5F",
       },
       score: 0,
       rank: 0,
@@ -456,6 +444,30 @@ export const sessionMock = {
         state: "question",
         startedAt: newStartedAt,
         pausedAt: null,
+      },
+    });
+    return { data: persistAndBroadcast(updated) };
+  },
+
+  // ✅ NEW: كان ناقص — بيتنادى من زر "اعرض الإجابة"
+  async reveal(sessionId) {
+    await delay();
+    const user = requireRole(...CAN_CONTROL);
+    const session = ownSessionOrThrow(sessionId, user);
+    if (!["question", "paused"].includes(session.live.state)) {
+      throw { status: 409, message: "مش ممكن نعرض الإجابة من الحالة الحالية" };
+    }
+
+    const remaining = session.live.state === "question"
+      ? computeTimeLeft(session)
+      : (session.live.timeLeft ?? 0);
+
+    const updated = db.sessions.update(session.id, {
+      live: {
+        ...session.live,
+        state: "reveal",
+        pausedAt: null,
+        timeLeft: remaining,
       },
     });
     return { data: persistAndBroadcast(updated) };

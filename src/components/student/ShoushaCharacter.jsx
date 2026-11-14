@@ -4,7 +4,7 @@ import { SHOUSHA } from "../../assets/shousha.js";
 import "../../styles/shousha.css";
 import "../../styles/reactions.css";
 
-function ShoushaCharacter({ size = 120, hairColor, mode = "full", className = "", title, style }) {
+function ShoushaCharacter({ size = 120, hairColor, mode = "full", className = "", title }) {
   const uid = useId().replace(/:/g, "");
   const clipId = `eyeclip-${uid}`;
 
@@ -22,17 +22,18 @@ function ShoushaCharacter({ size = 120, hairColor, mode = "full", className = ""
   }, [clipId, mode]);
 
   const hostStyle = {
-    display: "inline-block",
-    lineHeight: 0,
-    verticalAlign: "middle",
-    flexShrink: 0,
+    "--shousha-size": `${size}px`,
     ...(hairColor ? { "--hair": hairColor } : {}),
-    ...(mode === "avatar" ? { width: size, height: size, borderRadius: "50%", overflow: "hidden", border: "2px solid var(--C-yalla-border-strong-60, #02090D)" } : { width: size }),
-    ...style,
   };
 
   return (
-    <span className={`shousha-host shousha-host--${mode} ${className}`.trim()} style={hostStyle} dangerouslySetInnerHTML={{ __html: html }} role="img" aria-label={title || "شوشة"} />
+    <span
+      className={`shousha-host shousha-host--${mode} ${className}`.trim()}
+      style={hostStyle}
+      dangerouslySetInnerHTML={{ __html: html }}
+      role="img"
+      aria-label={title || "شوشة"}
+    />
   );
 }
 

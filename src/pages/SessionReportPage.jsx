@@ -1,7 +1,7 @@
 // src/pages/SessionReportPage.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, BarChart3, Download, FileText, Trophy, UserCheck, Users, Zap } from "lucide-react";
+import { ArrowRight, BarChart3, ClipboardList, Download, FileText, Trophy, UserCheck, Users, Zap } from "lucide-react";
 import { reportApi } from "../api/report.api";
 import { sessionApi } from "../api/session.api";
 import Loading from "../components/ui/Loading.jsx";
@@ -43,9 +43,7 @@ export default function SessionReportPage() {
     try {
       const res = await reportApi.exportXlsx(sessionId);
       const { buffer, filename } = res.data;
-      const blob = new Blob([buffer], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
+      const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -103,7 +101,9 @@ export default function SessionReportPage() {
     return (
       <div className="page">
         <div className="card stack-card">
-          <p className="error-alert">{error || "التقرير مش متاح"}</p>
+          <p className="error-alert">
+            {error || "التقرير مش متاح"}
+          </p>
           <button className="button button-primary turquoise" onClick={() => navigate("/sessions")}>
             <ArrowRight size={16} /> رجوع للجلسات
           </button>
@@ -121,7 +121,8 @@ export default function SessionReportPage() {
           </span>
           <h1>{session.title}</h1>
           <p>
-            كود {session.code} · {summary?.totalParticipants} طالب · {fmtSeconds(summary?.durationSeconds)}
+            كود {session.code} · {summary?.totalParticipants} طالب ·{" "}
+            {fmtSeconds(summary?.durationSeconds)}
           </p>
         </div>
         <div className="heading-meta">
@@ -132,7 +133,11 @@ export default function SessionReportPage() {
             <ArrowRight size={16} /> رجوع
           </Link>
         </div>
-        {exportError && <p className="error-alert">{exportError}</p>}
+        {exportError && (
+          <p className="error-alert">
+            {exportError}
+          </p>
+        )}
       </header>
 
       <main className="dashboard">
@@ -141,12 +146,7 @@ export default function SessionReportPage() {
             {TABS.map((t) => {
               const Icon = t.icon;
               return (
-                <button
-                  className={`type-chip${activeTab === t.id ? " selected" : ""}`}
-                  type="button"
-                  onClick={() => setActiveTab(t.id)}
-                  key={t.id}
-                >
+                <button className={`type-chip${activeTab === t.id ? " selected" : ""}`} type="button" onClick={() => setActiveTab(t.id)} key={t.id}>
                   <Icon size={14} />
                   <span>{t.label}</span>
                 </button>
@@ -154,7 +154,7 @@ export default function SessionReportPage() {
             })}
           </div>
 
-          {activeTab === "summary" && <SummaryTab summary={summary} />}
+          {activeTab === "summary" && <SummaryTab session={session} summary={summary} />}
           {activeTab === "questions" && <QuestionsTab rows={questions} />}
           {activeTab === "students" && <StudentsTab rows={students} />}
           {activeTab === "attendance" && <AttendanceTab rows={attendance} />}
@@ -165,7 +165,7 @@ export default function SessionReportPage() {
   );
 }
 
-function SummaryTab({ summary }) {
+function SummaryTab({ summary, session }) {
   if (!summary) return null;
   return (
     <div className="stack-card">
@@ -180,14 +180,18 @@ function SummaryTab({ summary }) {
       {summary.topPlayers.length > 0 && (
         <div>
           <h3 className="mt-8">
-            <Trophy size={16} className="v-middle" /> المتصدرين
+            <Trophy className="v-middle" size={16} /> المتصدرين
           </h3>
           <table className="students-table">
             <thead>
               <tr>
-                <th className="report-col-60">#</th>
+                <th className="report-col-60">
+                  #
+                </th>
                 <th>الاسم</th>
-                <th className="report-col-120">النقاط</th>
+                <th className="report-col-120">
+                  النقاط
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -205,11 +209,16 @@ function SummaryTab({ summary }) {
 
       {summary.hardestQuestion && (
         <div>
-          <h3 className="mt-8">أصعب سؤال</h3>
+          <h3 className="mt-8">
+            أصعب سؤال
+          </h3>
           <div className="field report-field-gap-4">
-            <div className="report-bold">{summary.hardestQuestion.text}</div>
+            <div className="report-bold">
+              {summary.hardestQuestion.text}
+            </div>
             <div className="text-info-soft">
-              {summary.hardestQuestion.correctPercentage}% إجابات صح · {summary.hardestQuestion.answersCount} إجابة
+              {summary.hardestQuestion.correctPercentage}% إجابات صح ·{" "}
+              {summary.hardestQuestion.answersCount} إجابة
             </div>
           </div>
         </div>
@@ -219,15 +228,25 @@ function SummaryTab({ summary }) {
 }
 
 function QuestionsTab({ rows }) {
-  if (rows.length === 0) return <p className="muted">مفيش بيانات.</p>;
+  if (rows.length === 0) {
+    return (
+      <p className="muted">
+        مفيش بيانات.
+      </p>
+    );
+  }
   return (
     <div className="stack-card">
       {rows.map((q) => (
         <div className="field report-field-gap-6" key={q.questionId}>
           <div className="card-heading">
             <div>
-              <span className="card-eyebrow">سؤال {q.questionIndex}</span>
-              <div className="report-bold">{q.text}</div>
+              <span className="card-eyebrow">
+                سؤال {q.questionIndex}
+              </span>
+              <div className="report-bold">
+                {q.text}
+              </div>
             </div>
             <span className={`status-badge ${q.correctPercentage >= 50 ? "status-badge-late" : "status-badge-inactive"}`}>
               {q.correctPercentage}% صح
@@ -255,8 +274,15 @@ function StudentsTab({ rows }) {
     <table className="students-table">
       <thead>
         <tr>
-          <th>#</th><th>الاسم</th><th>النقاط</th><th>صح</th><th>غلط</th>
-          <th>أجاب</th><th>متوسط الزمن</th><th>Streak</th><th>الحضور</th>
+          <th>#</th>
+          <th>الاسم</th>
+          <th>النقاط</th>
+          <th>صح</th>
+          <th>غلط</th>
+          <th>أجاب</th>
+          <th>متوسط الزمن</th>
+          <th>Streak</th>
+          <th>الحضور</th>
         </tr>
       </thead>
       <tbody>
@@ -267,7 +293,9 @@ function StudentsTab({ rows }) {
             <td>{s.score}</td>
             <td>{s.correctAnswers}</td>
             <td>{s.wrongAnswers}</td>
-            <td>{s.answeredQuestions}/{s.totalQuestions}</td>
+            <td>
+              {s.answeredQuestions}/{s.totalQuestions}
+            </td>
             <td>{Math.round(s.avgResponseMs / 100) / 10}s</td>
             <td>🔥 {s.highestStreak}</td>
             <td>
@@ -287,13 +315,19 @@ function AttendanceTab({ rows }) {
   return (
     <div className="stack-card">
       <div className="card-heading">
-        <h3><UserCheck size={16} className="v-middle" /> الحضور</h3>
-        <span className="count-pill">{present} / {rows.length} حاضر</span>
+        <h3><UserCheck className="v-middle" size={16} /> الحضور</h3>
+        <span className="count-pill">
+          {present} / {rows.length} حاضر
+        </span>
       </div>
       <table className="students-table">
         <thead>
           <tr>
-            <th>الاسم</th><th>أجاب</th><th>من إجمالي</th><th>مدة الحضور</th><th>الحالة</th>
+            <th>الاسم</th>
+            <th>أجاب</th>
+            <th>من إجمالي</th>
+            <th>مدة الحضور</th>
+            <th>الحالة</th>
           </tr>
         </thead>
         <tbody>
@@ -317,12 +351,23 @@ function AttendanceTab({ rows }) {
 }
 
 function CommandsTab({ rows }) {
-  if (rows.length === 0) return <p className="muted">مفيش أوامر مستخدمة في الجلسة.</p>;
+  if (rows.length === 0) {
+    return (
+      <p className="muted">
+        مفيش أوامر مستخدمة في الجلسة.
+      </p>
+    );
+  }
   return (
     <table className="students-table">
       <thead>
         <tr>
-          <th>الأمر</th><th>بواسطة</th><th>الهدف</th><th>القيمة</th><th>السؤال</th><th>الوقت</th>
+          <th>الأمر</th>
+          <th>بواسطة</th>
+          <th>الهدف</th>
+          <th>القيمة</th>
+          <th>السؤال</th>
+          <th>الوقت</th>
         </tr>
       </thead>
       <tbody>
@@ -330,7 +375,9 @@ function CommandsTab({ rows }) {
           const icon = c.command === "gift" ? "🎁" : c.command === "thief" ? "🥷" : "🚀";
           return (
             <tr key={c.id}>
-              <td>{icon} {c.command}</td>
+              <td>
+                {icon} {c.command}
+              </td>
               <td>{c.actorName}</td>
               <td>{c.targetName || "—"}</td>
               <td>{c.value ?? "—"}</td>
@@ -345,11 +392,14 @@ function CommandsTab({ rows }) {
 }
 
 function StatCard({ label, value, tone }) {
-  const isSuccess = tone === "success";
   return (
-    <div className={`field report-stat-card${isSuccess ? " is-success" : ""}`}>
-      <span className="report-stat-label">{label}</span>
-      <strong className={`report-stat-value${isSuccess ? " is-success" : ""}`}>{value}</strong>
+    <div className={`field report-stat-card${tone === "success" ? " is-success" : ""}`}>
+      <span className="report-stat-label">
+        {label}
+      </span>
+      <strong className={`report-stat-value${tone === "success" ? " is-success" : ""}`}>
+        {value}
+      </strong>
     </div>
   );
 }

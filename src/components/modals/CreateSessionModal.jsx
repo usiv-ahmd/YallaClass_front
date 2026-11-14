@@ -1,7 +1,7 @@
 // src/modals/CreateSessionModal.jsx
 import { useEffect, useState } from "react";
 import { Command, Plus, X } from "lucide-react";
-import { quizApi } from "../api/quiz.api";
+import { quizApi } from "../../api/quiz.api";
 
 export default function CreateSessionModal({ onClose, onCreate }) {
   const [quizzes, setQuizzes] = useState([]);

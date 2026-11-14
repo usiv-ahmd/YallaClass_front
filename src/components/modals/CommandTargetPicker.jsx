@@ -9,10 +9,16 @@ export default function CommandTargetPicker({ command, label, emoji, players, se
       <section className="card modal-window" role="dialog" aria-modal="true">
         <div className="card-heading">
           <div className="card-heading-title">
-            <div className="card-icon turquoise cmd-picker-icon">{emoji}</div>
+            <div className="card-icon turquoise" style={{ fontSize: 24 }}>
+              {emoji}
+            </div>
             <div>
-              <span className="card-kicker">اختار الهدف</span>
-              <h2 className="modal-title">{label} — لمين؟</h2>
+              <span className="card-kicker">
+                اختار الهدف
+              </span>
+              <h2 className="modal-title">
+                {label} — لمين؟
+              </h2>
             </div>
           </div>
           <button type="button" className="modal-close-button" onClick={onClose} aria-label="إغلاق">
@@ -22,7 +28,9 @@ export default function CommandTargetPicker({ command, label, emoji, players, se
 
         <div className="modal-content">
           {targets.length === 0 ? (
-            <p className="muted">مفيش لاعبين تانيين في الحصة.</p>
+            <p className="muted">
+              مفيش لاعبين تانيين في الحصة.
+            </p>
           ) : (
             <div className="type-selector">
               {targets.map((p) => (
@@ -34,7 +42,9 @@ export default function CommandTargetPicker({ command, label, emoji, players, se
           )}
 
           <div className="modal-actions">
-            <button type="button" className="button modal-button white" onClick={onClose}>إلغاء</button>
+            <button type="button" className="button modal-button white" onClick={onClose}>
+              إلغاء
+            </button>
           </div>
         </div>
       </section>

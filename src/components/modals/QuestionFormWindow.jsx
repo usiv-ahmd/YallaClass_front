@@ -1,6 +1,6 @@
 // src/modals/QuestionFormWindow.jsx
 import { X, Plus, Minus, FilePen, FilePlus, ListChecks, CheckCircle2, Zap } from "lucide-react";
-import { QUESTION_TYPES, MAX_POINTS, MIN_POINTS } from "../constants/questions.js";
+import { QUESTION_TYPES, MAX_WEIGHT, MIN_WEIGHT, MAX_DEGREE, MIN_DEGREE } from "../../constants/questions.js";
 
 export default function QuestionFormWindow({ question, sessionId }) {
   const isEditing = Boolean(question.editingId);
@@ -93,14 +93,25 @@ export default function QuestionFormWindow({ question, sessionId }) {
             </>
           )}
 
-          <label htmlFor="question-points">
+          <label htmlFor="question-weight">
             وزن السؤال (النقاط)
           </label>
-          <div className="points-input-wrap">
+          <div className="weight-input-wrap">
             <Zap size={15} />
-            <input id="question-points" type="number" min={MIN_POINTS} max={MAX_POINTS} step={1} value={question.points} onChange={(e) => question.setpoints(e.target.value)} />
-            <span className="points-unit">
+            <input id="question-weight" type="number" min={MIN_WEIGHT} max={MAX_WEIGHT} step={1} value={question.weight} onChange={(e) => question.setWeight(e.target.value)} />
+            <span className="weight-unit">
               نقطة
+            </span>
+          </div>
+
+          <label htmlFor="question-degree">
+            درجة السؤال
+          </label>
+          <div className="weight-input-wrap">
+            <Zap size={15} />
+            <input id="question-degree" type="number" min={MIN_DEGREE} max={MAX_DEGREE} step={1} value={question.degree} onChange={(e) => question.setDegree(e.target.value)} />
+            <span className="weight-unit">
+              درجة
             </span>
           </div>
 

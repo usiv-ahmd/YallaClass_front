@@ -31,9 +31,14 @@ export default function OrganizationPage() {
     setNameError(null);
     setNameOk(false);
     setSavingName(true);
-    try { await updateOrganization({ name: nameDraft }); setNameOk(true); }
-    catch (err) { setNameError(err.message || "تعذّر الحفظ"); }
-    finally { setSavingName(false); }
+    try {
+      await updateOrganization({ name: nameDraft });
+      setNameOk(true);
+    } catch (err) {
+      setNameError(err.message || "تعذّر الحفظ");
+    } finally {
+      setSavingName(false);
+    }
   };
 
   const handleAddMember = async (e) => {
@@ -52,14 +57,20 @@ export default function OrganizationPage() {
   };
 
   const handleRoleChange = async (memberId, role) => {
-    try { await updateMember(memberId, { role }); }
-    catch (err) { alert(err.message || "تعذّر تعديل الدور"); }
+    try {
+      await updateMember(memberId, { role });
+    } catch (err) {
+      alert(err.message || "تعذّر تعديل الدور");
+    }
   };
 
   const handleRemove = async (member) => {
     if (!window.confirm(`حذف "${member.name}" من المنظمة؟`)) return;
-    try { await removeMember(member.id); }
-    catch (err) { alert(err.message || "تعذّر الحذف"); }
+    try {
+      await removeMember(member.id);
+    } catch (err) {
+      alert(err.message || "تعذّر الحذف");
+    }
   };
 
   useEffect(() => {
@@ -67,14 +78,20 @@ export default function OrganizationPage() {
   }, [organization?.name]);
 
   if (loading && !organization) {
-    return <div className="page"><Loading title="بنحمّل بيانات المنظمة..." description="ثانية واحدة" /></div>;
+    return (
+      <div className="page">
+        <Loading title="بنحمّل بيانات المنظمة..." description="ثانية واحدة" />
+      </div>
+    );
   }
 
   if (error && !organization) {
     return (
       <div className="page">
         <div className="card stack-card">
-          <p className="error-alert">{error}</p>
+          <p className="error-alert">
+            {error}
+          </p>
           <button className="button button-primary turquoise" type="button" onClick={() => navigate("/instructor-dashboard")}>
             <ArrowRight size={16} /> رجوع للوحة التحكم
           </button>
@@ -89,10 +106,17 @@ export default function OrganizationPage() {
     <div className="page">
       <header className="card page-heading">
         <div>
-          <span className="page-eyebrow"><Building2 size={13} /> المنظمة</span>
-          <h1>{organization.name}</h1>
-          <p>إدارة المنظمة والأعضاء</p>
+          <span className="page-eyebrow">
+            <Building2 size={13} /> المنظمة
+          </span>
+          <h1>
+            {organization.name}
+          </h1>
+          <p>
+            إدارة المنظمة والأعضاء
+          </p>
         </div>
+
         <div className="heading-meta">
           <button className="button button-primary ghost" type="button" onClick={() => navigate("/instructor-dashboard")}>
             <ArrowRight size={16} /> رجوع
@@ -105,10 +129,16 @@ export default function OrganizationPage() {
           <section className="card stack-card">
             <div className="card-heading">
               <div className="card-heading-title">
-                <div className="card-icon turquoise"><Building2 size={22} /></div>
+                <div className="card-icon turquoise">
+                  <Building2 size={22} />
+                </div>
                 <div>
-                  <span className="card-eyebrow">البيانات الأساسية</span>
-                  <h2>معلومات المنظمة</h2>
+                  <span className="card-eyebrow">
+                    البيانات الأساسية
+                  </span>
+                  <h2>
+                    معلومات المنظمة
+                  </h2>
                 </div>
               </div>
             </div>
@@ -116,26 +146,20 @@ export default function OrganizationPage() {
             <form className="stack-card" onSubmit={handleSaveName}>
               <label>اسم المنظمة</label>
               <div className="input-wrap">
-                <input
-                  id="org-name"
-                  disabled={!canEditOrg || savingName}
-                  maxLength={80}
-                  required
-                  type="text"
-                  value={nameDraft}
-                  onChange={(e) => { setNameDraft(e.target.value); setNameOk(false); setNameError(null); }}
-                />
+                <input id="org-name" disabled={!canEditOrg || savingName} maxLength={80} required type="text" value={nameDraft} onChange={(e) => { setNameDraft(e.target.value); setNameOk(false); setNameError(null); }} />
               </div>
 
-              {nameError && <p className="error-alert">{nameError}</p>}
-              {nameOk && <p className="text-success">✓ تم الحفظ</p>}
+              {nameError && <p className="error-alert">
+                {nameError}
+              </p>}
+              {nameOk && (
+                <p className="text-success">
+                  ✓ تم الحفظ
+                </p>
+              )}
 
               {canEditOrg && (
-                <button
-                  className="button button-primary turquoise"
-                  disabled={savingName || nameDraft === organization.name}
-                  type="submit"
-                >
+                <button className="button button-primary turquoise" disabled={savingName || nameDraft === organization.name} type="submit">
                   {savingName ? "جاري الحفظ..." : "حفظ الاسم"}
                 </button>
               )}
@@ -145,12 +169,19 @@ export default function OrganizationPage() {
           <section className="card stack-card">
             <div className="card-heading">
               <div className="card-heading-title">
-                <div className="card-icon yellow"><Users size={22} /></div>
+                <div className="card-icon yellow">
+                  <Users size={22} />
+                </div>
                 <div>
-                  <span className="card-eyebrow">{members.length} عضو</span>
-                  <h2>أعضاء المنظمة</h2>
+                  <span className="card-eyebrow">
+                    {members.length} عضو
+                  </span>
+                  <h2>
+                    أعضاء المنظمة
+                  </h2>
                 </div>
               </div>
+
               {canManageMembers && (
                 <button className="button button-primary turquoise" type="button" onClick={() => setAddOpen(true)}>
                   <Plus size={16} /> إضافة عضو
@@ -161,10 +192,16 @@ export default function OrganizationPage() {
             <table className="students-table">
               <thead>
                 <tr>
-                  <th className="col-name">الاسم</th>
+                  <th className="col-name">
+                    الاسم
+                  </th>
                   <th>البريد</th>
-                  <th className="org-col-roles">الدور</th>
-                  <th className="org-col-action">إجراء</th>
+                  <th className="org-col-roles">
+                    الدور
+                  </th>
+                  <th className="org-col-action">
+                    إجراء
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -172,11 +209,16 @@ export default function OrganizationPage() {
                   const isSelf = member.id === user?.id;
                   const canEdit = canManageMembers && member.role !== "OWNER";
                   const canDelete = user?.role === "OWNER" && member.role !== "OWNER" && !isSelf;
+
                   return (
                     <tr key={member.id}>
                       <td className="col-name">
                         {member.name}
-                        {isSelf && <small className="org-self-badge">(أنت)</small>}
+                        {isSelf && (
+                          <small className="org-self-badge">
+                            (أنت)
+                          </small>
+                        )}
                       </td>
                       <td>
                         <Mail size={12} className="org-mail-icon" />
@@ -184,13 +226,13 @@ export default function OrganizationPage() {
                       </td>
                       <td>
                         {canEdit ? (
-                          <select
-                            className="org-select"
-                            value={member.role}
-                            onChange={(e) => handleRoleChange(member.id, e.target.value)}
-                          >
-                            <option value="TEACHER">مدرس</option>
-                            <option value="ASSISTANT">مساعد</option>
+                          <select className="org-select" value={member.role} onChange={(e) => handleRoleChange(member.id, e.target.value)}>
+                            <option value="TEACHER">
+                              مدرس
+                            </option>
+                            <option value="ASSISTANT">
+                              مساعد
+                            </option>
                           </select>
                         ) : (
                           <span className={`status-badge ${member.role === "OWNER" ? "status-badge-inactive" : "status-badge-late"}`}>
@@ -204,7 +246,9 @@ export default function OrganizationPage() {
                             <Trash2 size={15} />
                           </button>
                         ) : (
-                          <span className="cell-null">—</span>
+                          <span className="cell-null">
+                            —
+                          </span>
                         )}
                       </td>
                     </tr>
@@ -221,10 +265,16 @@ export default function OrganizationPage() {
           <section className="card modal-window" role="dialog" aria-modal="true">
             <div className="card-heading">
               <div className="card-heading-title">
-                <div className="card-icon turquoise"><Plus size={22} /></div>
+                <div className="card-icon turquoise">
+                  <Plus size={22} />
+                </div>
                 <div>
-                  <span className="card-kicker">عضو جديد</span>
-                  <h2 className="modal-title">إضافة عضو</h2>
+                  <span className="card-kicker">
+                    عضو جديد
+                  </span>
+                  <h2 className="modal-title">
+                    إضافة عضو
+                  </h2>
                 </div>
               </div>
               <button className="modal-close-button" type="button" onClick={() => setAddOpen(false)} aria-label="إغلاق">
@@ -250,14 +300,22 @@ export default function OrganizationPage() {
 
               <label>الدور</label>
               <div className="type-selector">
-                <button className={`type-chip${memberDraft.role === "TEACHER" ? " selected" : ""}`} type="button" onClick={() => setMemberDraft({ ...memberDraft, role: "TEACHER" })}>مدرس</button>
-                <button className={`type-chip${memberDraft.role === "ASSISTANT" ? " selected" : ""}`} type="button" onClick={() => setMemberDraft({ ...memberDraft, role: "ASSISTANT" })}>مساعد</button>
+                <button className={`type-chip${memberDraft.role === "TEACHER" ? " selected" : ""}`} type="button" onClick={() => setMemberDraft({ ...memberDraft, role: "TEACHER" })}>
+                  مدرس
+                </button>
+                <button className={`type-chip${memberDraft.role === "ASSISTANT" ? " selected" : ""}`} type="button" onClick={() => setMemberDraft({ ...memberDraft, role: "ASSISTANT" })}>
+                  مساعد
+                </button>
               </div>
 
-              {addError && <p className="error-alert">{addError}</p>}
+              {addError && <p className="error-alert">
+                {addError}
+              </p>}
 
               <div className="modal-actions">
-                <button className="button modal-button white" type="button" onClick={() => setAddOpen(false)}>إلغاء</button>
+                <button className="button modal-button white" type="button" onClick={() => setAddOpen(false)}>
+                  إلغاء
+                </button>
                 <button className="button modal-button turquoise" disabled={addBusy} type="submit">
                   {addBusy ? "جاري الإضافة..." : "إضافة"}
                 </button>

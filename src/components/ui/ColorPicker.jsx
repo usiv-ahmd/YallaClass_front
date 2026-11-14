@@ -105,10 +105,10 @@ export default function ColorPicker({ color, onChange, onClose }) {
   return (
     <div className="opened-window-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()} role="presentation">
       <section className="card modal-window ps-picker-modal" role="dialog" aria-modal="true">
-        <div className="card-heading" style={{ marginBottom: 12 }}>
+        <div className="card-heading mb-12">
           <div className="card-heading-title">
             <div className="card-icon yellow">
-              <span style={{ fontSize: 22 }}>
+              <span className="emoji-22">
                 🎨
               </span>
             </div>
@@ -132,22 +132,22 @@ export default function ColorPicker({ color, onChange, onClose }) {
               <span className="ps-preview-label">
                 current
               </span>
-              <div className="ps-swatch" style={{ backgroundColor: originalColor.current }} />
+              <div className="ps-swatch" style={{ "--swatch": originalColor.current }} />
             </div>
             <div className="ps-preview-box">
               <span className="ps-preview-label">
                 new
               </span>
-              <div className="ps-swatch" style={{ backgroundColor: currentHex }} />
+              <div className="ps-swatch" style={{ "--swatch": currentHex }} />
             </div>
           </div>
 
           <div className="ps-picker-top">
-            <div className="ps-picker-2d" style={{ background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, ${hueHex})` }} onPointerDown={onPickerDown} onPointerMove={onPickerMove} ref={pickerRef}>
-              <div className="ps-picker-2d-cursor" style={{ left: `${hsv.s}%`, top: `${100 - hsv.v}%` }} />
+            <div className="ps-picker-2d" style={{ "--hue-color": hueHex }} onPointerDown={onPickerDown} onPointerMove={onPickerMove} ref={pickerRef}>
+              <div className="ps-picker-2d-cursor" style={{ "--cx": `${hsv.s}%`, "--cy": `${100 - hsv.v}%` }} />
             </div>
             <div className="ps-picker-hue" onPointerDown={onHueDown} onPointerMove={onHueMove} ref={hueRef}>
-              <div className="ps-picker-hue-cursor" style={{ top: `${(hsv.h / 360) * 100}%` }} />
+              <div className="ps-picker-hue-cursor" style={{ "--cy": `${(hsv.h / 360) * 100}%` }} />
             </div>
           </div>
 

@@ -2,7 +2,6 @@
 import { db } from "./db";
 import { broadcast } from "./broadcast";
 import { delay, requireOrg, requireRole } from "./latency";
-import { DEFAULT_POINTS, MAX_POINTS, MIN_POINTS } from "../../constants/questions.js";
 
 const CAN_EDIT = ["OWNER", "TEACHER", "ASSISTANT"];
 
@@ -17,7 +16,7 @@ function normalizeQuestion(raw) {
   const type = raw?.type === "true_false" ? "true_false" : "mcq";
   const text = String(raw?.text ?? raw?.question ?? "").trim();
   const duration = clampInt(raw?.duration, 5, 120, 30);
-  const points = clampInt(raw?.points ?? raw?.weight, MIN_POINTS, MAX_POINTS, DEFAULT_POINTS);
+  const weight = clampInt(raw?.weight, 1, 100, 10);
 
   const correctOptionIndex = Number.isInteger(raw?.correctOptionIndex) ? raw.correctOptionIndex : Number.isInteger(raw?.correctIndex) ? raw.correctIndex : options.findIndex((o) => o === raw?.correctAnswer);
 
@@ -38,7 +37,7 @@ function normalizeQuestion(raw) {
     options: type === "true_false" ? ["صح", "غلط"] : options,
     correctOptionIndex: type === "true_false" ? (correctOptionIndex === 1 ? 1 : 0) : correctOptionIndex,
     duration,
-    points,
+    weight,
     explanation: raw?.explanation ? String(raw.explanation).trim() : "",
     source: "manual",
     createdAt: raw?.createdAt || Date.now(),

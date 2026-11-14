@@ -204,6 +204,8 @@ body {
 }
 .auth-container {
   max-width: 440px;
+  overflow: visible !important; 
+  position: relative;
 }
 .stack-card {
   gap: 14px;
@@ -1384,3 +1386,9 @@ input:-webkit-autofill:active:not(:disabled) {
   transform: translateY(6px);
   box-shadow: none;
 }
+
+
+/* new */
+.mt-6  { margin-top: 6px; }
+.mb-12 { margin-bottom: 12px; }
+.emoji-22 { font-size: 22px; }

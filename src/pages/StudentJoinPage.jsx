@@ -79,7 +79,7 @@ export default function StudentJoinPage() {
 
               <label>لون شوشة (الأفاتار)</label>
               <div className="color-picker-container">
-                <button className="custom-color-button" style={{ backgroundColor: hairColor }} title="دوس لتغيير اللون" type="button" onClick={() => setIsPickerOpen(true)}>
+                <button className="custom-color-button" style={{ "--hair": hairColor }} title="دوس لتغيير اللون" type="button" onClick={() => setIsPickerOpen(true)}>
                   <Palette color={hairColor === "#FFFFFF" || hairColor === "#FFD23F" ? "#000" : "#FFF"} size={26} />
                 </button>
 

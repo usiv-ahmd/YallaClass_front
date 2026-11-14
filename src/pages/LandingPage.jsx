@@ -1,6 +1,6 @@
 // src/pages/LandingPage.jsx
 import { useNavigate } from "react-router-dom";
-import { Presentation } from "lucide-react";
+import { Presentation, User } from "lucide-react";
 import "../styles/landing.css";
 
 export default function LandingPage() {
@@ -39,13 +39,9 @@ export default function LandingPage() {
             سجّل دخولك عشان تنشئ الحصة وتظبط الأسئله والطلاب.<br />
             تقدر ترفع ملفات الحصة واحنا هنظبط لك اسئلة.
           </p>
-<<<<<<< Updated upstream
-          <span className="landing-card-cta">دخول كمدرس ←</span>
-=======
           <span className="landing-card-cta">
             دخول كمدرس ←
           </span>
->>>>>>> Stashed changes
         </button>
       </div>
     </div>

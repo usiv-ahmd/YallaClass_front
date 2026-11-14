@@ -412,8 +412,6 @@
   margin-top: 8px;
 }
 
-
-/* true/false buttons */
 .answer-grid-tf { grid-template-columns: 1fr 1fr; }
 .answer-option-true {
   background: color-mix(in srgb, var(--C-yalla-success) 15%, var(--C-yalla-fg));
@@ -426,7 +424,6 @@
 .answer-option-true .answer-option-key { color: var(--C-yalla-success); }
 .answer-option-false .answer-option-key { color: var(--C-yalla-danger); }
 
-/* type tag */
 .question-type-tag {
   font-size: 0.78rem;
   opacity: 0.75;
@@ -437,4 +434,57 @@
   background: color-mix(in srgb, var(--C-yalla-highlight) 20%, var(--C-yalla-fg));
   color: var(--C-yalla-bg);
   font-weight: 700;
+}
+
+
+
+
+
+
+/* ============================================================
+   Color Picker Layout & Floating Avatar
+   ============================================================ */
+
+.color-picker-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  margin-top: 10px;
+}
+
+.custom-color-button {
+  width: 64px;
+  height: 64px;
+  border: 3px solid var(--C-yalla-border-strong-60);
+  border-radius: var(--yalla-radius-sm);
+  box-shadow: var(--yalla-shadow-sm);
+  background-color: var(--hair, #FF5A5F);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  flex-shrink: 0;
+}
+
+.custom-color-button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.color-picker-preview {
+  position: absolute;
+  left: -15px;
+  bottom: -20px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@media (max-width: 900px) {
+  .color-picker-preview {
+    position: static;
+    pointer-events: auto;
+    margin: 0 auto;
+  }
 }

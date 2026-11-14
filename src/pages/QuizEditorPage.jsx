@@ -5,8 +5,8 @@ import { ArrowRight, Check, FileQuestion, Pencil, Settings2, X } from "lucide-re
 import { useQuiz } from "../store/quiz.store.jsx";
 import { useQuestionsForm } from "../hooks/useQuestionsForm.js";
 import QuestionsPanel from "../components/instructor/QuestionsPanel.jsx";
-import UploadPanel from "../components/student/UploadPanel.jsx";
-import QuestionFormWindow from "../modals/QuestionFormWindow.jsx";
+import UploadPanel from "../components/instructor/UploadPanel.jsx";
+import QuestionFormWindow from "../components/modals/QuestionFormWindow.jsx";
 import Loading from "../components/ui/Loading.jsx";
 
 export default function QuizEditorPage() {
@@ -14,7 +14,10 @@ export default function QuizEditorPage() {
   const navigate = useNavigate();
   const { quiz, asSession, loading, error, saveMeta, updateQuestions } = useQuiz(quizId);
 
-  const question = useQuestionsForm({ session: asSession, updateQuestions });
+  const question = useQuestionsForm({
+    session: asSession,
+    updateQuestions,
+  });
 
   const [metaOpen, setMetaOpen] = useState(false);
   const [metaDraft, setMetaDraft] = useState({ title: "", subject: "", tags: "" });
@@ -26,8 +29,15 @@ export default function QuizEditorPage() {
     setMetaError(null);
     setMetaBusy(true);
     try {
-      const tags = metaDraft.tags.split(",").map((t) => t.trim()).filter(Boolean);
-      await saveMeta({ title: metaDraft.title, subject: metaDraft.subject, tags });
+      const tags = metaDraft.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      await saveMeta({
+        title: metaDraft.title,
+        subject: metaDraft.subject,
+        tags,
+      });
       setMetaOpen(false);
     } catch (err) {
       setMetaError(err.message || "تعذّر الحفظ");
@@ -47,14 +57,20 @@ export default function QuizEditorPage() {
   }, [quiz?.id]);
 
   if (loading) {
-    return <div className="page"><Loading description="ثانية" title="بنحمّل الكويز..." /></div>;
+    return (
+      <div className="page">
+        <Loading description="ثانية" title="بنحمّل الكويز..." />
+      </div>
+    );
   }
 
   if (error || !quiz) {
     return (
       <div className="page">
         <div className="card stack-card">
-          <p className="error-alert">{error || "الكويز مش موجود"}</p>
+          <p className="error-alert">
+            {error || "الكويز مش موجود"}
+          </p>
           <button className="button button-primary turquoise" type="button" onClick={() => navigate("/library")}>
             <ArrowRight size={16} /> رجوع للمكتبة
           </button>
@@ -73,7 +89,9 @@ export default function QuizEditorPage() {
           </span>
           <h1>{quiz.title}</h1>
           {(quiz.tags || []).length > 0 && (
-            <p className="mt-8">{quiz.tags.map((t) => `#${t}`).join("  ")}</p>
+            <p className="mt-6">
+              {quiz.tags.map((t) => `#${t}`).join("  ")}
+            </p>
           )}
         </div>
 
@@ -94,9 +112,13 @@ export default function QuizEditorPage() {
               <div className="card stack-card">
                 <div className="card-heading">
                   <div className="card-heading-title">
-                    <div className="card-icon yellow"><FileQuestion size={22} /></div>
+                    <div className="card-icon yellow">
+                      <FileQuestion size={22} />
+                    </div>
                     <div>
-                      <span className="card-eyebrow">جاهز للتعديل</span>
+                      <span className="card-eyebrow">
+                        جاهز للتعديل
+                      </span>
                       <h2>لسه مفيش أسئلة</h2>
                     </div>
                   </div>
@@ -124,10 +146,16 @@ export default function QuizEditorPage() {
           <section className="card modal-window" role="dialog" aria-modal="true">
             <div className="card-heading">
               <div className="card-heading-title">
-                <div className="card-icon turquoise"><Pencil size={22} /></div>
+                <div className="card-icon turquoise">
+                  <Pencil size={22} />
+                </div>
                 <div>
-                  <span className="card-kicker">بيانات الكويز</span>
-                  <h2 className="modal-title">تعديل البيانات</h2>
+                  <span className="card-kicker">
+                    بيانات الكويز
+                  </span>
+                  <h2 className="modal-title">
+                    تعديل البيانات
+                  </h2>
                 </div>
               </div>
               <button className="modal-close-button" type="button" onClick={() => setMetaOpen(false)} aria-label="إغلاق">
@@ -151,12 +179,17 @@ export default function QuizEditorPage() {
                 <input type="text" value={metaDraft.tags} onChange={(e) => setMetaDraft({ ...metaDraft, tags: e.target.value })} />
               </div>
 
-              {metaError && <p className="error-alert">{metaError}</p>}
+              {metaError && <p className="error-alert">
+                {metaError}
+              </p>}
 
               <div className="modal-actions">
-                <button className="button modal-button white" type="button" onClick={() => setMetaOpen(false)}>إلغاء</button>
+                <button className="button modal-button white" type="button" onClick={() => setMetaOpen(false)}>
+                  إلغاء
+                </button>
                 <button className="button modal-button turquoise" disabled={metaBusy} type="submit">
-                  <Check size={16} /> {metaBusy ? "جاري الحفظ..." : "حفظ"}
+                  <Check size={16} />
+                  {metaBusy ? "جاري الحفظ..." : "حفظ"}
                 </button>
               </div>
             </form>

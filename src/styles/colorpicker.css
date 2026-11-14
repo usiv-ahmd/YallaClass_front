@@ -1,0 +1,195 @@
+/* ============================================================
+   Photoshop-style Color Picker (Yalla Theme)
+   ============================================================ */
+
+.ps-picker-modal {
+  max-width: 520px;
+  width: 100%;
+}
+
+.ps-picker-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ps-picker-middle {
+  display: flex;
+  gap: 16px;
+}
+
+.ps-preview-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ps-preview-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--C-yalla-text-secondary);
+  text-transform: lowercase;
+}
+
+.ps-swatch {
+  height: 52px;
+  border: 3px solid var(--C-yalla-border-strong-60);
+  border-radius: var(--yalla-radius-sm);
+  box-shadow: 0 3px 0 var(--C-yalla-border-strong-60);
+}
+
+.ps-picker-top {
+  display: flex;
+  gap: 16px;
+  height: 220px;
+}
+
+.ps-picker-2d {
+  position: relative;
+  flex: 1;
+  border: 3px solid var(--C-yalla-border-strong-60);
+  border-radius: var(--yalla-radius-sm);
+  box-shadow: 0 4px 0 var(--C-yalla-border-strong-60);
+  cursor: crosshair;
+  touch-action: none;
+  overflow: hidden;
+}
+
+.ps-picker-2d-cursor {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000;
+  pointer-events: none;
+}
+
+.ps-picker-hue {
+  position: relative;
+  width: 32px;
+  border: 3px solid var(--C-yalla-border-strong-60);
+  border-radius: var(--yalla-radius-sm);
+  box-shadow: 0 4px 0 var(--C-yalla-border-strong-60);
+  background: linear-gradient(
+    to bottom,
+    #ff0000,
+    #ffff00,
+    #00ff00,
+    #00ffff,
+    #0000ff,
+    #ff00ff,
+    #ff0000
+  );
+  cursor: pointer;
+  touch-action: none;
+}
+
+.ps-picker-hue-cursor {
+  position: absolute;
+  left: -3px;
+  right: -3px;
+  height: 12px;
+  border: 3px solid #fff;
+  border-radius: 6px;
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 2px #000;
+  pointer-events: none;
+}
+
+.ps-picker-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.ps-picker-inputs {
+  flex: 1;
+}
+
+.ps-hex-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ps-hex-row label {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--C-yalla-text-secondary);
+}
+
+.ps-hex-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  border: 3px solid var(--C-yalla-border-strong-60);
+  border-radius: var(--yalla-radius-sm);
+  background: var(--C-yalla-fg);
+  color: var(--C-yalla-bg);
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-align: center;
+  outline: none;
+  box-shadow: 0 3px 0 var(--C-yalla-border-strong-60);
+  transition: border-color 0.12s ease;
+}
+
+.ps-hex-input:focus {
+  border-color: var(--C-yalla-primary);
+}
+
+.ps-picker-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ps-picker-actions .button {
+  min-height: 48px;
+  padding: 0 24px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 520px) {
+  .ps-picker-top {
+    height: 180px;
+  }
+  
+  .ps-picker-bottom {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .ps-picker-actions {
+    width: 100%;
+  }
+  
+  .ps-picker-actions .button {
+    flex: 1;
+  }
+}
+
+.ps-swatch {
+  background-color: var(--swatch, #FF5A5F);
+}
+
+.ps-picker-2d {
+  background:
+    linear-gradient(to top, #000, transparent),
+    linear-gradient(to right, #fff, var(--hue-color, #FF5A5F));
+}
+
+.ps-picker-2d-cursor {
+  left: var(--cx, 0%);
+  top: var(--cy, 0%);
+}
+
+.ps-picker-hue-cursor {
+  top: var(--cy, 0%);
+}
