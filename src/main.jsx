@@ -8,6 +8,7 @@ import { AuthProvider } from "./store/auth.store.jsx";
 import { OrganizationProvider } from "./store/organization.store.jsx";
 import "./styles/global.css";
 import "./styles/mobile/mobile.css";
+import "./styles/design-system.css";
 
 initClient()
   .then((client) => {
