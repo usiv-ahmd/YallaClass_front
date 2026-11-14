@@ -1,0 +1,53 @@
+// src/pages/LandingPage.jsx
+import { useNavigate } from "react-router-dom";
+import { Presentation } from "lucide-react";
+import "../styles/landing.css";
+
+export default function LandingPage() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="landing-container">
+      <div className="landing-badge">
+        اول منصه اسئله للحصص بالعربي
+      </div>
+
+      <h1 className="landing-title">
+        مرحباً بك في منصة <span>يلا كلاس</span>
+      </h1>
+
+      <p className="landing-subtitle">
+        اختار هويتك عشان تبدأ — الطالب بيدخل بكود الحصة، والمدرس بيسجل دخوله.
+      </p>
+
+      <div className="landing-cards">
+        <button className="card landing-card" type="button" onClick={() => navigate("/login")}>
+          <div className="card-heading">
+            <div className="card-heading-title">
+              <span className="card-icon yellow">
+                <Presentation size={26} />
+              </span>
+              <div>
+                <span className="card-eyebrow">
+                  هتدخل على طول
+                </span>
+                <h3>أنا مدرس</h3>
+              </div>
+            </div>
+          </div>
+          <p>
+            سجّل دخولك عشان تنشئ الحصة وتظبط الأسئله والطلاب.<br />
+            تقدر ترفع ملفات الحصة واحنا هنظبط لك اسئلة.
+          </p>
+<<<<<<< Updated upstream
+          <span className="landing-card-cta">دخول كمدرس ←</span>
+=======
+          <span className="landing-card-cta">
+            دخول كمدرس ←
+          </span>
+>>>>>>> Stashed changes
+        </button>
+      </div>
+    </div>
+  );
+}

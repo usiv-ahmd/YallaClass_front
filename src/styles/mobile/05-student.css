@@ -1,0 +1,193 @@
+/* ==========================================================================
+   MOBILE LAYER — 05. Student screen & leaderboard sidebar
+   Mirrors: student-page.css, reactions.css
+   Scope:   @media (max-width: 768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .student-question .answer-result {
+    margin-top: 10px;
+    padding: 10px 11px;
+    gap: 8px;
+    border-radius: 14px;
+    font-size: 13px;
+  }
+
+  .student-question .answer-result-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+
+  .student-question .answer-result strong {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .student-question .answer-result small {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .leave-session-btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .sidebar .leaderboard-header {
+    gap: 8px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+  }
+
+  .sidebar .leaderboard-header h2 {
+    font-size: 1.05rem;
+  }
+
+  .sidebar .leaderboard-header .mini-label {
+    font-size: 0.64rem;
+  }
+
+  .sidebar .live-chip {
+    padding: 3px 9px;
+    font-size: 10px;
+  }
+
+  .sidebar .your-rank-card {
+    gap: 8px;
+    padding: 9px 10px;
+    margin-bottom: 12px;
+    border-radius: 14px;
+    box-shadow: 0 4px 0 var(--C-yalla-border-strong-60);
+  }
+
+  .sidebar .your-rank-card__copy span {
+    font-size: 10px;
+  }
+
+  .sidebar .your-rank-card__copy strong {
+    font-size: 12.5px;
+  }
+
+  .sidebar .your-rank-card__position {
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 19px;
+    border-radius: 11px;
+  }
+
+  .sidebar .podium {
+    gap: 6px;
+    padding: 2px 0 16px;
+    margin-bottom: 6px;
+  }
+
+  .sidebar .podium-card {
+    gap: 3px;
+    padding: 8px 4px 12px;
+    border-radius: 12px 12px 9px 9px;
+  }
+
+  .sidebar .podium-card--1 {
+    min-height: 104px;
+  }
+
+  .sidebar .podium-card--2 {
+    min-height: 90px;
+  }
+
+  .sidebar .podium-card--3 {
+    min-height: 80px;
+  }
+
+  .sidebar .podium-card__name {
+    font-size: 10.5px;
+  }
+
+  .sidebar .podium-card__score {
+    font-size: 15px;
+  }
+
+  .sidebar .podium-card__crown {
+    top: -18px;
+    font-size: 17px;
+  }
+
+  .sidebar .podium-card__rank {
+    width: 24px;
+    height: 24px;
+    bottom: -12px;
+    font-size: 12px;
+  }
+
+  .sidebar .ranking-list-heading {
+    font-size: 12px;
+  }
+
+  .sidebar .ranking-list-heading span:last-child {
+    font-size: 10px;
+  }
+
+  .sidebar .ranking-list {
+    gap: 5px;
+    max-height: 300px;
+  }
+
+  .sidebar .ranking-row {
+    grid-template-columns: 24px 26px minmax(0, 1fr) auto;
+    gap: 6px;
+    min-height: 40px;
+    padding: 5px 8px;
+    border-radius: 10px;
+    font-size: 12.5px;
+  }
+
+  .sidebar .ranking-row__rank {
+    width: 23px;
+    height: 23px;
+    font-size: 11px;
+  }
+
+  .sidebar .ranking-row__score {
+    font-size: 14px;
+  }
+
+  .sidebar .leaderboard-footer {
+    gap: 5px;
+    padding: 7px 10px;
+    margin-top: 10px;
+    font-size: 11px;
+  }
+
+  .student-reaction-container {
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* ==========================================================================
+   Small phones
+   ========================================================================== */
+@media (max-width: 420px) {
+  .sidebar .podium-card--1 {
+    min-height: 96px;
+  }
+
+  .sidebar .podium-card--2 {
+    min-height: 84px;
+  }
+
+  .sidebar .podium-card--3 {
+    min-height: 74px;
+  }
+
+  .sidebar .ranking-row {
+    grid-template-columns: 22px 24px minmax(0, 1fr) auto;
+    font-size: 12px;
+  }
+
+  .student-question .answer-result strong {
+    font-size: 13px;
+  }
+}

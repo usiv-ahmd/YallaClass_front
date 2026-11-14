@@ -1,0 +1,148 @@
+.landing-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 40px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.landing-badge {
+  font-family: var(--font-display);
+  background: var(--C-yalla-surface);
+  color: var(--C-yalla-highlight);
+  border: 3px solid var(--C-yalla-border-strong-60);
+  border-radius: 12px;
+  padding: 6px 16px;
+  font-size: 15px;
+  box-shadow:var(--yalla-center-shadow);
+}
+
+.landing-title {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 5vw, 56px);
+  color: var(--C-yalla-fg);
+  line-height: 1.25;
+  margin: 0;
+  text-shadow:var(--yalla-center-shadow);
+}
+
+.landing-title span {
+  font-family: var(--font-display);
+  color: var(--C-yalla-danger);
+  display: inline-block;
+}
+
+.landing-subtitle {
+  font-family: var(--font-body);
+  font-size: clamp(16px, 2.5vw, 20px);
+  color: var(--C-yalla-text-secondary);
+  max-width: 650px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.landing-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.landing-card {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  background: var(--C-yalla-surface);
+  border: 5px solid var(--C-yalla-border-strong-60);
+  box-shadow: var(--yalla-shadow);
+  border-radius: 24px;
+  padding: 18px 20px;
+  height: fit-content;
+  width: 100%;
+  overflow: hidden;
+  transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+  gap: 20px;
+}
+.landing-card:active {
+  transform: translate(4px, 4px);
+  box-shadow: 2px 2px 0 var(--C-yalla-bg);
+}
+
+.landing-card-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.landing-card h3 {
+  font-family: var(--font-display);
+  color: var(--C-yalla-highlight);
+  margin: 0;
+  font-size: 22px;
+}
+
+.landing-card p {
+  color: var(--C-yalla-text-secondary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.auth-pages {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.btn-primary, .btn-secondary {
+  font-family: var(--font-display);
+  font-size: 20px;
+  padding: 12px 32px;
+  border-radius: 16px;
+  border: 3px solid var(--C-yalla-border-strong-60);
+  box-shadow: var(--yalla-center-shadow);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.btn-primary {
+  background: var(--C-yalla-danger);
+  color: var(--C-yalla-fg);
+}
+
+.btn-secondary {
+  background: var(--C-yalla-highlight);
+  color: var(--C-yalla-bg);
+}
+
+.btn-primary:active, .btn-secondary:active {
+  transform: translateY(6px);
+  box-shadow: none;
+}
+
+.landing-card-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.15rem; 
+  font-weight: 800;
+  margin-top: 20px;
+  padding: 12px 24px;
+  border-radius: 50px;
+  background-color: var(--C-yalla-bg);
+  color: var(--C-yalla-fg);
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.landing-card-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px var(--C-yalla-black-20);
+  opacity: 0.95;
+}

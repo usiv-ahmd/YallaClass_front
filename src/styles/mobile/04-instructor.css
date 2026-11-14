@@ -1,0 +1,497 @@
+/* ==========================================================================
+   MOBILE LAYER — 04. Instructor dashboard & live session
+   Mirrors: Instructor-page.css
+   Scope:   @media (max-width: 768px)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .today-chip {
+    min-height: 40px;
+    padding: 7px 11px;
+    font-size: 0.8rem;
+  }
+
+  .session-area {
+    gap: 6px;
+    padding: 5px 10px;
+  }
+  .session-meta-status {
+    gap: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 10px;
+    border: 2px solid var(--C-yalla-border-strong-60);
+  }
+
+  .heading-meta > .chip,
+  .heading-meta > .session-meta-status {
+    flex: 1 1 auto;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .session-code {
+    padding: 3px 11px;
+    border-radius: 10px;
+  }
+
+  .session-code small {
+    font-size: 10px;
+  }
+
+  .session-code b {
+    font-size: 16px;
+  }
+
+  .overview-status {
+    gap: 5px;
+    padding: 5px 9px;
+    font-size: 0.7rem;
+  }
+
+  .session-workspace,
+  .live-workspace {
+    gap: 14px;
+  }
+
+  .session-workspace .questions,
+  .session-workspace .boards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .layout > .live-workspace {
+    order: -1;
+  }
+
+  .session-meta-row {
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .session-meta-item {
+    gap: 8px;
+    padding: 7px 9px;
+  }
+
+  .meta-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+  }
+
+  .session-meta-item small {
+    font-size: 0.64rem;
+  }
+
+  .session-meta-item strong {
+    font-size: 0.8rem;
+  }
+
+  .upload-box-container {
+    gap: 8px;
+  }
+
+  .upload-dropzone {
+    min-height: 112px;
+    padding: 16px 12px;
+    gap: 6px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .upload-dropzone small {
+    font-size: 0.7rem;
+  }
+
+  .attached-file-field {
+    padding: 7px 10px;
+    gap: 5px;
+    font-size: 0.72rem;
+  }
+
+  .attached-file-badge b {
+    max-width: 60%;
+  }
+
+  .question-list {
+    gap: 10px;
+  }
+
+  .question-field {
+    gap: 8px;
+  }
+
+  .question-field h3 {
+    margin: 2px 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .question-field-topline {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .question-number {
+    min-width: 28px;
+    height: 25px;
+    font-size: 0.78rem;
+  }
+
+  .question-info {
+    gap: 4px;
+    padding: 3px 8px;
+    font-size: 0.66rem;
+  }
+
+  .question-actions {
+    gap: 5px;
+    margin-inline-start: auto;
+  }
+
+  .question-options-preview {
+    gap: 6px;
+  }
+
+  .question-options-preview span {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+    border-radius: 9px;
+  }
+
+  .question-options-preview span i {
+    width: 16px;
+    height: 16px;
+    font-size: 0.62rem;
+  }
+
+  .empty-questions {
+    padding: 22px 14px;
+  }
+
+  .empty-questions strong {
+    font-size: 0.92rem;
+  }
+
+  .empty-questions span {
+    font-size: 0.76rem;
+  }
+
+  .question-input-wrap textarea {
+    min-height: 60px;
+    padding: 9px 12px;
+    font-size: 16px;
+  }
+
+  .answer-options-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 7px;
+  }
+
+  .answer-option-field {
+    gap: 7px;
+    padding: 6px 9px;
+  }
+
+  .option-letter {
+    width: 22px;
+    height: 22px;
+    font-size: 0.72rem;
+  }
+
+  .option-input {
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .correct-radio {
+    width: 20px;
+    height: 20px;
+  }
+
+  .type-selector {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .type-chip {
+    flex-direction: column;
+    gap: 3px;
+    min-height: 58px;
+    padding: 7px 4px;
+    font-size: 0.7rem;
+    line-height: 1.2;
+    text-align: center;
+    border-radius: 11px;
+  }
+
+  .duration-picker {
+    grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+    gap: 6px;
+  }
+
+  .duration-chip {
+    min-height: 42px;
+    padding: 5px 6px;
+    border-radius: 11px;
+  }
+
+  .duration-chip b {
+    font-size: 0.95rem;
+  }
+
+  .duration-chip small {
+    font-size: 0.64rem;
+  }
+
+  .weight-input-wrap {
+    min-height: 44px;
+    padding: 0 10px;
+  }
+
+  .weight-input-wrap input {
+    height: 38px;
+    font-size: 16px;
+  }
+
+  .live-progress-card {
+    padding: 12px 13px;
+  }
+
+  .live-progress-meta {
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 11.5px;
+  }
+
+  .live-control {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 14px;
+  }
+
+  .live-control .button {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    margin: 0;
+  }
+
+  .live-control .auto-advance-toggle {
+    grid-column: 1 / -1;
+  }
+
+  .live-control > .button:only-of-type {
+    grid-column: 1 / -1;
+  }
+
+  .auto-advance-toggle {
+    column-gap: 8px;
+    padding: 9px 12px;
+  }
+
+  .auto-advance-toggle > span {
+    font-size: 12.5px;
+  }
+
+  .auto-advance-toggle > small {
+    font-size: 10.5px;
+  }
+
+  .live-questions-list {
+    max-height: 240px;
+    gap: 5px;
+  }
+
+  .live-questions-list li {
+    gap: 8px;
+    padding: 7px 8px;
+    font-size: 0.8rem;
+  }
+
+  .q-index {
+    width: 20px;
+    height: 20px;
+    flex-basis: 20px;
+    font-size: 10px;
+  }
+
+  .sidebar-card h3 {
+    font-size: 0.95rem;
+  }
+
+  .students-table {
+    min-width: 600px;
+    border-spacing: 0 6px;
+  }
+
+  .card:has(> .students-table) {
+    scrollbar-width: thin;
+  }
+
+  .card:has(> .students-table)::-webkit-scrollbar {
+    display: block;
+    height: 6px;
+  }
+
+  .card:has(> .students-table)::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .card:has(> .students-table)::-webkit-scrollbar-thumb {
+    background: var(--C-yalla-primary-40);
+    border-radius: 99px;
+  }
+
+  .students-table th {
+    padding: 6px 5px;
+    font-size: 0.68rem;
+  }
+
+  .students-table td {
+    height: 44px;
+    padding: 8px 5px;
+  }
+
+  .students-table .col-rank {
+    width: 34px;
+    font-size: 0.9rem;
+  }
+
+  .students-table .col-interacted {
+    width: 86px;
+  }
+
+  .students-table .col-timedout,
+  .students-table .col-missed {
+    width: 62px;
+  }
+
+  .students-table .col-score {
+    width: 56px;
+  }
+
+  .students-table .col-streak {
+    width: 72px;
+  }
+
+  .students-table .col-warn,
+  .students-table .col-delete {
+    width: 40px;
+  }
+
+  .students-table .col-name {
+    font-size: 0.8rem;
+  }
+
+  .students-table .col-score,
+  .students-table .col-streak {
+    font-size: 0.78rem;
+  }
+
+  .status-badge {
+    padding: 3px 7px;
+    font-size: 0.62rem;
+  }
+
+  .check-area {
+    width: 23px;
+    height: 23px;
+    font-size: 0.72rem;
+  }
+
+  .online-dot {
+    width: 7px;
+    height: 7px;
+    margin-inline-start: 4px;
+  }
+
+  .reopen-toggle {
+    gap: 10px;
+    padding: 12px;
+    font-size: 0.84rem;
+  }
+
+  .reopen-toggle input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ==========================================================================
+   Small phones — the attendance table is squeezed to fit the screen instead
+   of scrolling. The three dropped columns are the least used ones, and their
+   meaning still shows up as the "متأخر" badge in the "تفاعل" column; the CSV
+   export keeps every value.
+   ========================================================================== */
+@media (max-width: 420px) {
+  .students-table {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .students-table .col-streak,
+  .students-table .col-timedout,
+  .students-table .col-missed {
+    display: none;
+  }
+
+  .students-table {
+    border-spacing: 0 5px;
+  }
+
+  .students-table th {
+    padding: 5px 3px;
+    font-size: 0.6rem;
+    letter-spacing: -0.2px;
+  }
+
+  .students-table td {
+    height: 40px;
+    padding: 6px 3px;
+  }
+
+  .students-table .col-rank {
+    width: 26px;
+    font-size: 0.82rem;
+  }
+
+  .students-table .col-interacted {
+    width: 74px;
+  }
+
+  .students-table .col-score {
+    width: 44px;
+    font-size: 0.74rem;
+  }
+
+  .students-table .col-warn,
+  .students-table .col-delete {
+    width: 34px;
+  }
+
+  .students-table .col-name {
+    font-size: 0.74rem;
+  }
+
+  .students-table .icon-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .status-badge {
+    padding: 2px 5px;
+    font-size: 0.56rem;
+  }
+
+  .check-area {
+    width: 20px;
+    height: 20px;
+    font-size: 0.66rem;
+  }
+}

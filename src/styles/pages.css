@@ -1,0 +1,199 @@
+/* ============================================================
+   pages.css — Shared utilities extracted from inline styles
+   ============================================================ */
+
+.text-center        { text-align: center; }
+.mx-auto           { margin: 0 auto; }
+.min-w-0           { min-width: 0; }
+.flex-1            { flex: 1; }
+.m-0               { margin: 0; }
+.mt-8              { margin-top: 8px; }
+.mt-14             { margin-top: 14px; }
+.mt-16             { margin-top: 16px; }
+.v-middle          { vertical-align: middle; }
+.me-1              { margin-inline-end: 3px; }
+.emoji-lg          { font-size: 18px; }
+.emoji-xl          { font-size: 20px; }
+
+.text-muted        { color: var(--C-yalla-text-tertiary); }
+.text-danger-soft  { color: var(--C-yalla-danger); font-size: 0.8rem; }
+.text-info-soft    { color: var(--C-yalla-text-tertiary); font-size: 0.8rem; }
+.text-success      { color: var(--C-yalla-success); font-size: 13px; }
+
+/* ── Layout ──────────────────────────────────────────────── */
+.col-layout        { flex-direction: column; }
+.flex-center-gap-8 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.flex-wrap-gap-8 {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.flex-center-wrap-gap-8 {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Session Header ──────────────────────────────────────── */
+.session-header-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* ── Commands Panel ──────────────────────────────────────── */
+.commands-panel {
+  margin-top: 14px;
+  padding: 10px;
+  background: var(--C-yalla-surface);
+  border-radius: 12px;
+  border: 2px solid var(--C-yalla-border-strong-60);
+}
+.commands-label {
+  font-size: 0.78rem;
+  color: var(--C-yalla-text-tertiary);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+.commands-grid-3 {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* ── Grids ───────────────────────────────────────────────── */
+.grid-list-260 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.grid-list-280 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.grid-cards-280 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+.grid-tabs-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* ── Badge Row ───────────────────────────────────────────── */
+.badge-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* ── Report Page ─────────────────────────────────────────── */
+.report-stat-card { gap: 4px; }
+.report-stat-card.is-success { border-color: var(--C-yalla-success); }
+.report-stat-label {
+  font-size: 0.72rem;
+  color: var(--C-yalla-text-tertiary);
+  font-weight: 700;
+}
+.report-stat-value {
+  font-size: 1.6rem;
+  color: var(--C-yalla-fg);
+  line-height: 1.1;
+}
+.report-stat-value.is-success { color: var(--C-yalla-success); }
+.report-info-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--C-yalla-text-tertiary);
+}
+.report-field-gap-4 { gap: 4px; }
+.report-field-gap-6 { gap: 6px; }
+.report-bold        { font-weight: 700; }
+.report-col-60      { width: 60px; }
+.report-col-120     { width: 120px; }
+
+/* ── Session Detail Page ─────────────────────────────────── */
+.session-timer-chip {
+  padding: 4px 12px;
+  background: var(--C-yalla-primary-15);
+  border: 2px solid var(--C-yalla-primary);
+  border-radius: 10px;
+  font-weight: 700;
+}
+.session-countdown-number {
+  font-size: 96px;
+  margin: 0;
+  font-family: var(--font-display);
+}
+.session-controls-card {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px;
+}
+.session-events-list {
+  max-height: 320px;
+  list-style: none;
+  padding: 0;
+}
+.session-events-item  { align-items: flex-start; }
+.session-events-emoji { font-size: 18px; flex: 0 0 auto; }
+.session-events-body  { flex: 1; min-width: 0; }
+.session-events-actor { font-weight: 700; font-size: 0.85rem; }
+.session-events-meta  { font-size: 0.72rem; color: var(--C-yalla-text-tertiary); }
+
+/* ── Quiz Library Page ───────────────────────────────────── */
+.quiz-card { gap: 8px; cursor: pointer; }
+.quiz-card-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.quiz-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+/* ── Organization Page ───────────────────────────────────── */
+.org-select {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 2px solid var(--C-yalla-border-strong-60);
+  background: var(--C-yalla-bg);
+  color: var(--C-yalla-fg);
+}
+.org-self-badge { color: var(--C-yalla-text-tertiary); margin-inline-start: 6px; }
+.org-mail-icon  { vertical-align: middle; margin-inline-end: 4px; opacity: 0.6; }
+.org-col-roles  { width: 140px; }
+.org-col-action { width: 60px; }
+.org-td-center  { text-align: center; }
+
+/* ── Landing / Link Cards ────────────────────────────────── */
+.link-card {
+  text-decoration: none;
+  color: inherit;
+  gap: 14px;
+  cursor: pointer;
+}
+
+/* ── Command Target Picker ───────────────────────────────── */
+.cmd-picker-icon { font-size: 24px; }

@@ -1,0 +1,192 @@
+/* src/styles/leaderboard-popup.css */
+
+.leaderboard-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--C-yalla-bg-85);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.leaderboard-popup {
+  width: 100%;
+  max-width: 440px;
+  background: var(--C-yalla-surface);
+  border: 4px solid var(--C-yalla-border-strong-60);
+  border-radius: 24px;
+  box-shadow: var(--yalla-shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: popupEnter 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+
+@keyframes popupEnter {
+  from { opacity: 0; transform: scale(0.85) translateY(30px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Header */
+.lb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed var(--C-yalla-white-08);
+}
+
+.lb-title {
+  font: 700 1.25rem var(--font-display);
+  color: var(--C-yalla-fg);
+}
+
+.lb-live-badge {
+  background: var(--C-yalla-danger);
+  color: var(--C-yalla-fg);
+  padding: 4px 14px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 0 var(--C-yalla-border-strong-60);
+}
+
+.lb-live-badge i {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  animation: statusBlink 1s infinite;
+}
+
+/* List */
+.lb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-inline-end: 4px;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: var(--C-yalla-surface-raised);
+  border: 2px solid var(--C-yalla-border-strong-60);
+  border-radius: 16px;
+  color: var(--C-yalla-fg);
+  transition: transform 0.2s ease, background 0.2s;
+}
+
+.lb-row--me {
+  background: var(--C-yalla-highlight);
+  color: var(--C-yalla-bg);
+  box-shadow: 0 4px 0 var(--C-yalla-border-strong-60);
+  transform: scale(1.02);
+}
+
+.lb-row__rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--C-yalla-bg);
+  color: var(--C-yalla-fg);
+  font-weight: 800;
+  font-family: var(--font-display);
+  flex-shrink: 0;
+  font-size: 0.95rem;
+}
+
+.lb-row--me .lb-row__rank {
+  background: var(--C-yalla-bg);
+  color: var(--C-yalla-highlight);
+}
+
+/* ألوان المراكز الأولى */
+.lb-row:nth-child(1) .lb-row__rank { background: var(--C-yalla-gold); color: var(--C-yalla-bg); }
+.lb-row:nth-child(2) .lb-row__rank { background: var(--C-yalla-tint); color: var(--C-yalla-bg); }
+.lb-row:nth-child(3) .lb-row__rank { background: var(--C-yalla-bronze); color: var(--C-yalla-bg); }
+
+.lb-row__avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--C-yalla-surface);
+  border: 2px solid var(--C-yalla-border-strong-60);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lb-row__name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lb-row__diff {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--C-yalla-success);
+  min-width: 45px;
+  text-align: left;
+  direction: ltr;
+}
+
+.lb-row__diff--neg {
+  color: var(--C-yalla-danger);
+}
+
+.lb-row--me .lb-row__diff {
+  color: var(--C-yalla-success-hover);
+}
+.lb-row--me .lb-row__diff--neg {
+  color: var(--C-yalla-danger-hover);
+}
+
+.lb-row__score {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  min-width: 48px;
+  text-align: left;
+  direction: ltr;
+}
+
+/* Footer */
+.lb-footer {
+  padding: 14px;
+  background: var(--C-yalla-surface-raised);
+  border: 2px solid var(--C-yalla-border-strong-60);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--C-yalla-fg);
+  margin-top: 4px;
+  line-height: 1.5;
+}
