@@ -3,11 +3,14 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Timer, Trophy, Users, Zap, X, Gift, VenetianMask, Rocket } from "lucide-react";
 import { usePlayerSession } from "../hooks/usePlayerSession";
+import { useReaction } from "../hooks/useReaction";
+import { useAvatarReaction } from "../hooks/useAvatarReaction";
 import Loading from "../components/ui/Loading.jsx";
 import CommandTargetPicker from "../components/modals/CommandTargetPicker.jsx";
 import QuestionPanel from "../components/student/QuestionPanel.jsx";
 import ShoushaCharacter from "../components/student/ShoushaCharacter.jsx";
 import LeaderboardPopup from "../components/student/LeaderboardPopup.jsx";
+import { Reaction } from "../components/Reaction.jsx";
 
 const STATE_LABEL = { lobby: "اللوبي", countdown: "استعد", question: "السؤال شغال", paused: "متوقف مؤقتًا", reveal: "المراجعة", explanation: "الشرح", leaderboard: "المتصدرين", finished: "خلصت" };
 
@@ -21,6 +24,23 @@ export default function StudentSessionPage() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const p = usePlayerSession(sessionId);
+
+  const answerState = p.currentAnswer
+    ? (p.currentAnswer.resultState ?? (p.currentAnswer.isCorrect ? "correct" : "wrong"))
+    : "pending";
+
+  const { reactionKey, triggerId, onDone } = useReaction({
+    liveState: p.liveState,
+    answerState,
+    streak: p.student?.currentStreak ?? 0,
+    rank: p.myRank ?? null,
+    timeLeft: p.timeLeft ?? 0,
+    questionId: p.currentQuestion?.id ?? null,
+  });
+  const avatarState = useAvatarReaction({
+    reactionKey,
+    liveState: p.liveState,
+  });
 
   const [isCommandsOpen, setIsCommandsOpen] = useState(false);
   const [targetingCmd, setTargetingCmd] = useState(null);
@@ -119,9 +139,10 @@ export default function StudentSessionPage() {
 
   return (
     <div className="page">
+
       <header className="card page-heading">
         <div className="session-header-user">
-          <ShoushaCharacter hairColor={p.student.avatar?.hairColor} size={130} title={`شوشة ${p.student.nickname || p.student.name}`} />
+          <ShoushaCharacter hairColor={p.student.avatar?.hairColor} size={130} state={avatarState} title={`شوشة ${p.student.nickname || p.student.name}`} />
           <div className="min-w-0">
             <span className="page-eyebrow">
               <Users size={13} /> {s.title}
@@ -156,7 +177,8 @@ export default function StudentSessionPage() {
       <main className="dashboard">
         <div className="layout col-layout">
           <div className="screen card stack-card">
-            <div className="student-question" data-answer-state={answer ? (answer.resultState ?? (answer.isCorrect ? "correct" : "wrong")) : ["reveal", "explanation", "leaderboard"].includes(state) ? "reveal" : "pending"} data-live-state={state}>
+            <Reaction reactionKey={reactionKey} triggerId={triggerId} onDone={onDone} />
+            <div className="student-question" data-answer-state={answer ? answerState : ["reveal", "explanation", "leaderboard"].includes(state) ? "reveal" : "pending"} data-live-state={state}>
               {state === "lobby" && (
                 <div className="main-screen">
                   <div className="state-icon">

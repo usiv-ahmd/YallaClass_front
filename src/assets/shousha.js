@@ -1,6 +1,6 @@
 // src/data/reactions.js
 export const SHOUSHA = {
-"svg": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -56 480 556" class="shousha" data-state="idle" role="img" aria-label="شوشة، مساعد يلا كلاس">
+  svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -56 480 556" class="shousha" data-state="idle" role="img" aria-label="شوشة، مساعد يلا كلاس">
           <defs>
             <clipPath id="eyeclip">
               <ellipse rx="24" ry="27"/>
@@ -42,7 +42,7 @@ export const SHOUSHA = {
                   <path d="M172 384 L170 440" stroke="#0A8C80" stroke-width="28" stroke-linecap="round"/>
                   <path d="M146 446 Q146 428 172 428 Q196 428 198 448 Q198 466 176 466 L150 466 Q146 466 146 458 Z" fill="#fff" stroke="#0B1F2A" stroke-width="7" stroke-linejoin="round"/>
                   <path d="M149 457 L195 457" stroke="#FF5A5F" stroke-width="8" stroke-linecap="round"/>
-                </g>   
+                </g>
                 <g class="leg legR">
                   <path d="M228 384 L230 440" stroke="#0B1F2A" stroke-width="42" stroke-linecap="round"/>
                   <path d="M228 384 L230 440" stroke="#0A8C80" stroke-width="28" stroke-linecap="round"/>
@@ -73,7 +73,7 @@ export const SHOUSHA = {
               <ellipse cx="148" cy="228" rx="14" ry="9" fill="#FF5A5F" opacity=".35"/>
               <ellipse cx="252" cy="228" rx="14" ry="9" fill="#FF5A5F" opacity=".35"/>
               <path class="hr" d="M130 236 L116 262 L142 252 L146 276 L166 256 L178 282 L192 260 L208 284 L222 260 L240 280 L248 254 L268 270 L266 246 L286 250 L270 226 Q200 262 130 236 Z" stroke="#0B1F2A" stroke-width="6" stroke-linejoin="round"/>
-              <path class="hr fringe" d="M128 150 L112 112 L150 128 L158 84 L184 120 L204 70 L224 118 L252 82 L258 128 L290 108 L274 152 Q200 128 128 150 Z" stroke="#0B1F2A" stroke-width="7" stroke-linejoin="round"/> 
+              <path class="hr fringe" d="M128 150 L112 112 L150 128 L158 84 L184 120 L204 70 L224 118 L252 82 L258 128 L290 108 L274 152 Q200 128 128 150 Z" stroke="#0B1F2A" stroke-width="7" stroke-linejoin="round"/>
               <g class="brows">
                 <g class="browL">
                   <path d="M142 160 Q162 146 186 158" fill="none" stroke="#0B1F2A" stroke-width="9" stroke-linecap="round"/>
@@ -81,7 +81,7 @@ export const SHOUSHA = {
                 <g class="browR">
                   <path d="M216 160 Q238 152 258 162" fill="none" stroke="#0B1F2A" stroke-width="9" stroke-linecap="round"/>
                 </g>
-              </g> 
+              </g>
               <g class="eyes">
                 <g class="eye eyeL" transform="translate(166 192)">
                   <g class="eye-open">
@@ -120,7 +120,7 @@ export const SHOUSHA = {
                   <path class="eye-happy" d="M-22 6 Q0 -22 22 6" fill="none" stroke="#0B1F2A" stroke-width="9" stroke-linecap="round"/>
                   <path class="eye-wink" d="M-20 4 Q0 -14 20 4" fill="none" stroke="#0B1F2A" stroke-width="9" stroke-linecap="round"/>
                 </g>
-              </g>  
+              </g>
               <g class="mouths" transform="translate(200 244)">
                 <g class="m m-smirk">
                   <path d="M-30 -2 Q-4 18 32 -8" fill="none" stroke="#0B1F2A" stroke-width="8" stroke-linecap="round"/>
@@ -142,14 +142,14 @@ export const SHOUSHA = {
                 </g>
                 <g class="m m-flat">
                   <path d="M-24 8 L24 8" stroke="#0B1F2A" stroke-width="8" stroke-linecap="round"/>
-                </g> 
+                </g>
                 <g class="m m-grit">
                   <rect x="-34" y="-4" width="68" height="26" rx="10" fill="#fff" stroke="#0B1F2A" stroke-width="7"/>
                   <path d="M-34 9 L34 9 M-12 -4 L-12 22 M12 -4 L12 22" stroke="#0B1F2A" stroke-width="4"/>
                 </g>
                 <g class="m m-sad">
                   <path d="M-26 20 Q0 -6 26 20" fill="none" stroke="#0B1F2A" stroke-width="8" stroke-linecap="round"/>
-                </g> 
+                </g>
                 <g class="m m-wavy">
                   <path d="M-30 8 Q-20 -4 -10 8 T10 8 T30 8" fill="none" stroke="#0B1F2A" stroke-width="8" stroke-linecap="round"/>
                 </g>
@@ -190,7 +190,7 @@ export const SHOUSHA = {
               <g class="flames">
                 <g transform="translate(0 14)">
                   <path class="fl f1" d="M146 76 Q124 34 152 2 Q158 32 178 44 Q172 66 146 76Z" fill="#FFD23F" stroke="#0B1F2A" stroke-width="6" stroke-linejoin="round"/>
-                  <path class="fl f2" d="M184 60 Q162 12 200 -38 Q206 4 228 20 Q218 52 184 60Z" fill="#FF5A5F" stroke="#0B1F2A" stroke-width="6" stroke-linejoin="round"/>   
+                  <path class="fl f2" d="M184 60 Q162 12 200 -38 Q206 4 228 20 Q218 52 184 60Z" fill="#FF5A5F" stroke="#0B1F2A" stroke-width="6" stroke-linejoin="round"/>
                   <path class="fl f3" d="M230 66 Q220 26 250 -6 Q262 28 272 46 Q256 66 230 66Z" fill="#FFD23F" stroke="#0B1F2A" stroke-width="6" stroke-linejoin="round"/>
                 </g>
               </g>
@@ -199,7 +199,7 @@ export const SHOUSHA = {
               <g transform="translate(146 296)">
                 <g class="arm armL">
                   <path d="M0 0 L0 36" fill="none" stroke="#0B1F2A" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
-                  <path d="M0 0 L0 36" fill="none" stroke="#2F80ED" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/> 
+                  <path d="M0 0 L0 36" fill="none" stroke="#2F80ED" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
                   <g transform="translate(0 36)">
                     <g class="forearm">
                       <path d="M0 0 L0 30" fill="none" stroke="#0B1F2A" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
@@ -234,12 +234,12 @@ export const SHOUSHA = {
                           </g>
                           <circle r="17" fill="#F0B084" stroke="#0B1F2A" stroke-width="7"/>
                         </g>
-                      </g> 
+                      </g>
                     </g>
                   </g>
                 </g>
               </g>
-            </g> 
+            </g>
             <g class="trophy" transform="translate(200 334) scale(.84)">
               <g class="trophy-in">
                 <path d="M-34 0 L34 0 Q34 52 0 56 Q-34 52 -34 0Z" fill="#FFD23F" stroke="#0B1F2A" stroke-width="8" stroke-linejoin="round"/>
@@ -276,5 +276,5 @@ export const SHOUSHA = {
             <polygon class="st s3" points="338.0,11.0 343.7,24.3 357.0,30.0 343.7,35.7 338.0,49.0 332.3,35.7 319.0,30.0 332.3,24.3" fill="#FFD23F" stroke="#0B1F2A" stroke-width="5" stroke-linejoin="round"/>
             <polygon class="st s4" points="64.0,17.0 68.9,29.1 81.0,34.0 68.9,38.9 64.0,51.0 59.1,38.9 47.0,34.0 59.1,29.1" fill="#fff" stroke="#0B1F2A" stroke-width="5" stroke-linejoin="round"/>
           </g>
-        </svg>`
+        </svg>`,
 };

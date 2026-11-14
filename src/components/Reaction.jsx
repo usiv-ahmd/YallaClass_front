@@ -1,14 +1,13 @@
 // src/components/Reaction.jsx
 import { useEffect, useRef, useState } from "react";
-import { YC_REACTIONS } from "../data/reactions.js";
-import { SMALL_HOLD_MS, BIG_HOLD_MS, LEAVE_MS } from "../constants/reactions.js";
+import { BIG_HOLD_MS, LEAVE_MS, SMALL_HOLD_MS, YC_REACTIONS } from "../assets/reactions.js";
 import "../styles/reactions.css";
 
-export function Reaction({ reactionKey, triggerId, onDone }) {
-  const [phase, setPhase]         = useState("enter");
+export function Reaction({ onDone, reactionKey, triggerId }) {
   const [activeKey, setActiveKey] = useState(null);
-
+  const [phase, setPhase] = useState("enter");
   const onDoneRef = useRef(onDone);
+
   useEffect(() => { onDoneRef.current = onDone; }, [onDone]);
 
   useEffect(() => {
@@ -35,19 +34,16 @@ export function Reaction({ reactionKey, triggerId, onDone }) {
       clearTimeout(holdTimer);
       clearTimeout(doneTimer);
     };
-  }, [triggerId, reactionKey]);
+  }, [reactionKey, triggerId]);
 
   if (!activeKey || !YC_REACTIONS[activeKey]) return null;
 
   const reaction = YC_REACTIONS[activeKey];
-  const isBig    = reaction.big;
+  const isBig = reaction.big;
 
   return (
     <div className="student-reaction-container">
-      <div
-        className={`yc-reaction ${isBig ? "yc-wide" : ""} ${phase === "enter" ? "yc-enter" : "yc-leave"}`}
-        dangerouslySetInnerHTML={{ __html: reaction.svg }}
-      />
+      <div className={`yc-reaction ${isBig ? "yc-wide" : ""} ${phase === "enter" ? "yc-enter" : "yc-leave"}`} dangerouslySetInnerHTML={{ __html: reaction.svg }} />
     </div>
   );
 }

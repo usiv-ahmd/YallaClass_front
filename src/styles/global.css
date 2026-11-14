@@ -3,6 +3,14 @@
 @import './pages.css';
 @import './Instructor-page.css';
 @import './student-page.css';
+
+@import './auth.css';
+@import './colorpicker.css';
+@import './command-target.css';
+@import './landing.css';
+@import './leaderboard-popup.css';
+@import './reactions.css';
+@import './shousha.css';
 /* temporary */
 
 :root {

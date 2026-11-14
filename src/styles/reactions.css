@@ -1,6 +1,9 @@
 /* ============================================================
    Student Reaction Container (Positioning)
    ============================================================ */
+  .screen > .student-reaction-container {
+    position: absolute;
+  }
 .student-reaction-container {
   position: absolute;
   top: 30%;

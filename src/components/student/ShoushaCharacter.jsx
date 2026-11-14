@@ -2,15 +2,15 @@
 import { memo, useId, useMemo } from "react";
 import { SHOUSHA } from "../../assets/shousha.js";
 import "../../styles/shousha.css";
-import "../../styles/reactions.css";
 
-function ShoushaCharacter({ size = 120, hairColor, mode = "full", className = "", title }) {
+function ShoushaCharacter({ className = "", hairColor, mode = "full", size = 120, state = "idle", title }) {
   const uid = useId().replace(/:/g, "");
   const clipId = `eyeclip-${uid}`;
 
   const html = useMemo(() => {
     let s = SHOUSHA.svg;
-    s = s.replace(/data-state="[^"]*"/g, 'data-state="idle"');
+
+    s = s.replace(/data-state="[^"]*"/g, `data-state="${state}"`);
     s = s.replace(/id="eyeclip"/g, `id="${clipId}"`);
     s = s.replace(/url\(#eyeclip\)/g, `url(#${clipId})`);
 
@@ -19,7 +19,7 @@ function ShoushaCharacter({ size = 120, hairColor, mode = "full", className = ""
     }
 
     return s;
-  }, [clipId, mode]);
+  }, [clipId, mode, state]);
 
   const hostStyle = {
     "--shousha-size": `${size}px`,
@@ -27,13 +27,7 @@ function ShoushaCharacter({ size = 120, hairColor, mode = "full", className = ""
   };
 
   return (
-    <span
-      className={`shousha-host shousha-host--${mode} ${className}`.trim()}
-      style={hostStyle}
-      dangerouslySetInnerHTML={{ __html: html }}
-      role="img"
-      aria-label={title || "شوشة"}
-    />
+    <span aria-label={title || "شوشة"} className={`shousha-host shousha-host--${mode} ${className}`.trim()} dangerouslySetInnerHTML={{ __html: html }} role="img" style={hostStyle} />
   );
 }
 

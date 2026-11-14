@@ -8,6 +8,10 @@
   flex-shrink: 0;
   width: var(--shousha-size, auto);
 }
+.session-header-user > .shousha-host {
+  position: absolute;
+  right: 45%;
+}
 
 .shousha-host--avatar {
   width: var(--shousha-size, 120px);
@@ -31,28 +35,35 @@
 }
 
 /* ============================================================
-   Shousha Base & Variables (ألوان الشعر الديناميكية)
+   Shousha Base & Variables
    ============================================================ */
 .shousha {
+  --hair: #FF5A5F;
+  --hair-d: #D63F44;
+  --halo: #FFD23F;
+  --px: 0px;
+  --py: 0px;
+  --lid: -40px;
+  --aL: 8deg;
+  --fL: -8deg;
+  --aR: -8deg;
+  --fR: 8deg;
+  --bLy: 0px;
+  --bLr: 0deg;
+  --bRy: -4px;
+  --bRr: -5deg;
+  --sc: 1;
+  --pp: 1;
   display: block;
   width: 100%;
   height: auto;
   overflow: visible;
 }
 
-.shousha .hr {
-  fill: var(--hair);
-  transition: fill 0.4s ease;
-}
+.shousha .hr { fill: var(--hair); transition: fill 0.4s; }
+.shousha .hrd { fill: var(--hair-d); transition: fill 0.4s; }
 
-.shousha .hrd {
-  fill: var(--hair-d);
-  transition: fill 0.4s ease;
-}
-
-/* ============================================================
-   إخفاء كل الحالات ما عدا الـ idle
-   ============================================================ */
+/* hidden by default */
 .shousha .m,
 .shousha .eye-happy,
 .shousha .eye-wink,
@@ -67,49 +78,212 @@
 .shousha .bangs,
 .shousha .fx,
 .shousha .thumb,
-.shousha .fingers { 
-  display: none; 
+.shousha .fingers {
+  display: none;
 }
+.shousha .m-smirk { display: inline; }
 
-.shousha .m-smirk { 
-  display: inline; 
-}
+/* pose plumbing */
+.shousha .arm { transition: transform 0.42s cubic-bezier(.34,1.56,.64,1); }
+.shousha .forearm { transition: transform 0.42s cubic-bezier(.34,1.56,.64,1); }
+.shousha .armL { transform: rotate(var(--aL)); }
+.shousha .armL .forearm { transform: rotate(var(--fL)); }
+.shousha .armR { transform: rotate(var(--aR)); }
+.shousha .armR .forearm { transform: rotate(var(--fR)); }
+.shousha .browL { transform-origin: 164px 158px; transform: translateY(var(--bLy)) rotate(var(--bLr)); transition: transform 0.3s; }
+.shousha .browR { transform-origin: 238px 160px; transform: translateY(var(--bRy)) rotate(var(--bRr)); transition: transform 0.3s; }
+.shousha .pupil { transform: translate(var(--px), var(--py)) scale(var(--pp)); transition: transform 0.25s; }
+.shousha .lid { transform: translateY(var(--lid)); transition: transform 0.25s; }
+.shousha .sclera { transform: scale(var(--sc)); transition: transform 0.25s; }
+.shousha .mouths { transition: transform 0.25s; }
 
-/* ============================================================
-   حركات الـ idle (عشان شوشة تتنفس وترمش)
-   ============================================================ */
-@keyframes sc-breathe { 
-  0%, 100% { transform: scale(1, 1); } 
-  50% { transform: scale(1.014, .986); } 
-}
-@keyframes sc-bob { 
-  0%, 100% { transform: translateY(0) rotate(0); } 
-  50% { transform: translateY(-3px) rotate(-1.2deg); } 
-}
-@keyframes sc-sway { 
-  0%, 100% { transform: rotate(-1.6deg); } 
-  50% { transform: rotate(1.6deg); } 
-}
-@keyframes sc-blink { 
-  0%, 93%, 100% { transform: scaleY(1); } 
-  96% { transform: scaleY(.08); } 
-}
+/* idle motion */
+@keyframes sc-breathe { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.014,.986); } }
+@keyframes sc-bob { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-1.2deg); } }
+@keyframes sc-sway { 0%,100% { transform: rotate(-1.6deg); } 50% { transform: rotate(1.6deg); } }
+@keyframes sc-blink { 0%,93%,100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
 
-.shousha .lowerbody { 
-  transform-origin: 200px 466px; 
-  animation: sc-breathe 3.2s ease-in-out infinite; 
-}
-.shousha .head { 
-  transform-origin: 200px 285px; 
-  animation: sc-bob 3.2s ease-in-out infinite; 
-}
-.shousha .mane { 
-  transform-origin: 200px 190px; 
-  animation: sc-sway 2.6s ease-in-out infinite; 
-}
-.shousha .eye-open { 
-  animation: sc-blink 4.6s infinite; 
-}
-.shousha .eyeR .eye-open { 
-  animation-delay: .07s; 
+.shousha .lowerbody { transform-origin: 200px 466px; animation: sc-breathe 3.2s ease-in-out infinite; }
+.shousha .head { transform-origin: 200px 285px; animation: sc-bob 3.2s ease-in-out infinite; }
+.shousha .mane { transform-origin: 200px 190px; animation: sc-sway 2.6s ease-in-out infinite; }
+.shousha .eye-open { animation: sc-blink 4.6s infinite; }
+.shousha .eyeR .eye-open { animation-delay: .07s; }
+
+/* shared motion primitives */
+@keyframes sc-hop { 0%,100% { transform: translateY(0); } 42% { transform: translateY(-32px); } }
+@keyframes sc-hopS { 0%,100% { transform: translateY(0); } 42% { transform: translateY(-12px); } }
+@keyframes sc-shadow { 0%,100% { transform: scale(1); opacity: .3; } 42% { transform: scale(.72); opacity: .16; } }
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+@keyframes sc-twinkle { 0%,100% { transform: scale(1) rotate(0); } 50% { transform: scale(1.3) rotate(18deg); } }
+@keyframes sc-drop { 0% { transform: translateY(-110px); opacity: 0; } 70% { transform: translateY(6px); opacity: 1; } 100% { transform: translateY(0); } }
+@keyframes sc-pop { 0% { transform: scale(0) rotate(-20deg); } 60% { transform: scale(1.2) rotate(6deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes sc-drip { 0% { transform: translateY(-6px); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(34px); opacity: 0; } }
+@keyframes sc-shake { 0%,100% { transform: translateX(0) rotate(0); } 25% { transform: translateX(-4px) rotate(-1.5deg); } 75% { transform: translateX(4px) rotate(1.5deg); } }
+@keyframes sc-ring { 0%,100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+@keyframes sc-flick { 0%,100% { transform: scale(1,1); } 50% { transform: scale(.88,1.2); } }
+@keyframes sc-bangs { 0%,100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+@keyframes sc-glow { 0%,100% { filter: drop-shadow(0 0 4px #FFD23F); } 50% { filter: drop-shadow(0 0 18px #FFD23F); } }
+@keyframes sc-jolt { 0% { transform: translateY(0); } 18% { transform: translateY(-34px) scale(1.03,.97); } 40% { transform: translateY(0); } 55% { transform: translateY(-8px); } 100% { transform: translateY(0); } }
+@keyframes sc-linesblink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes sc-waveL { 0%,100% { transform: rotate(var(--aL)); } 50% { transform: rotate(calc(var(--aL) + 16deg)); } }
+@keyframes sc-waveR { 0%,100% { transform: rotate(var(--aR)); } 50% { transform: rotate(calc(var(--aR) - 16deg)); } }
+@keyframes sc-pumpR { 0%,100% { transform: rotate(var(--aR)); } 50% { transform: rotate(calc(var(--aR) + 26deg)); } }
+@keyframes sc-thumb { 0%,100% { transform: rotate(var(--fR)); } 50% { transform: rotate(calc(var(--fR) + 14deg)); } }
+@keyframes sc-palm { 0%,100% { transform: rotate(var(--fR)); } 50% { transform: rotate(calc(var(--fR) + 12deg)); } }
+@keyframes sc-cool { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-4px) rotate(-3deg); } }
+@keyframes sc-think { 0%,100% { transform: translateY(0) rotate(3deg); } 50% { transform: translateY(2px) rotate(5deg); } }
+@keyframes sc-sigh { 0%,100% { transform: translateY(0) rotate(5deg); } 50% { transform: translateY(5px) rotate(7deg); } }
+@keyframes sc-fidget { 0%,100% { transform: translateX(0); } 30% { transform: translateX(-3px); } 60% { transform: translateX(3px); } }
+
+.shousha .fx-halo .spin { transform-origin: 200px 248px; }
+.shousha .halo-poly { fill: var(--halo); }
+.shousha .st { transform-box: fill-box; transform-origin: center; }
+.shousha .fl { transform-box: fill-box; transform-origin: 50% 100%; }
+.shousha .bangs g { transform-box: fill-box; transform-origin: center; }
+
+/* ─── يلا ─── */
+.shousha[data-state=yalla] { --aR:-152deg; --fR:-18deg; --aL:44deg; --fL:-102deg; --bLy:-6px; --bRy:-8px; --bRr:-8deg; }
+.shousha[data-state=yalla] .m-smirk { display: none; }
+.shousha[data-state=yalla] .m-shout { display: inline; }
+.shousha[data-state=yalla] .fx-lines { display: inline; animation: sc-linesblink .5s steps(2) infinite; }
+.shousha[data-state=yalla] .rig { animation: sc-hop .62s cubic-bezier(.3,.7,.4,1) infinite; }
+.shousha[data-state=yalla] .ground { transform-origin: 200px 478px; animation: sc-shadow .62s infinite; }
+.shousha[data-state=yalla] .armR { animation: sc-pumpR .62s ease-in-out infinite; }
+
+/* ─── عاش ─── */
+.shousha[data-state=aash] { --aL:140deg; --fL:24deg; --aR:-140deg; --fR:-24deg; --bLy:-8px; --bRy:-8px; --bLr:-6deg; --bRr:6deg; }
+.shousha[data-state=aash] .m-smirk { display: none; }
+.shousha[data-state=aash] .m-open { display: inline; }
+.shousha[data-state=aash] .eye-open { display: none; }
+.shousha[data-state=aash] .eye-happy { display: inline; }
+.shousha[data-state=aash] .fx-stars { display: inline; }
+.shousha[data-state=aash] .st { animation: sc-twinkle .7s ease-in-out infinite; }
+.shousha[data-state=aash] .s2 { animation-delay: .2s; }
+.shousha[data-state=aash] .s3 { animation-delay: .35s; }
+.shousha[data-state=aash] .s4 { animation-delay: .5s; }
+.shousha[data-state=aash] .rig { animation: sc-hop .7s cubic-bezier(.3,.7,.4,1) infinite; }
+.shousha[data-state=aash] .ground { transform-origin: 200px 478px; animation: sc-shadow .7s infinite; }
+.shousha[data-state=aash] .armL { animation: sc-waveL .35s ease-in-out infinite; }
+.shousha[data-state=aash] .armR { animation: sc-waveR .35s ease-in-out infinite; }
+
+/* ─── جامد ─── */
+.shousha[data-state=gamed] { --aL:-12deg; --fL:-90deg; --aR:12deg; --fR:90deg; --bLy:-2px; --bRy:-6px; }
+.shousha[data-state=gamed] .glasses-sun { display: inline; animation: sc-drop .55s cubic-bezier(.3,1.5,.5,1) both; }
+.shousha[data-state=gamed] .eyes,
+.shousha[data-state=gamed] .brows { opacity: 0; }
+.shousha[data-state=gamed] .head { animation: sc-cool 2.6s ease-in-out infinite; }
+.shousha[data-state=gamed] .fx-stars { display: inline; }
+.shousha[data-state=gamed] .s1,
+.shousha[data-state=gamed] .s4 { display: none; }
+.shousha[data-state=gamed] .st { animation: sc-twinkle 1.2s ease-in-out infinite; }
+
+/* ─── أسطوري ─── */
+.shousha[data-state=legend] { --halo:#FF5A5F; --hair:#FFD23F; --hair-d:#E8A200; --aL:95deg; --fL:85deg; --aR:-95deg; --fR:-85deg; --bLy:-4px; --bRy:-6px; }
+.shousha[data-state=legend] .m-smirk { display: none; }
+.shousha[data-state=legend] .m-open { display: inline; }
+.shousha[data-state=legend] .glasses-sun { display: inline; animation: sc-drop .55s cubic-bezier(.3,1.5,.5,1) .2s both; }
+.shousha[data-state=legend] .eyes,
+.shousha[data-state=legend] .brows { opacity: 0; }
+.shousha[data-state=legend] .fx-halo { display: inline; }
+.shousha[data-state=legend] .fx-halo .spin { animation: sc-spin 9s linear infinite; }
+.shousha[data-state=legend] .fx-stars { display: inline; }
+.shousha[data-state=legend] .st { animation: sc-twinkle .8s ease-in-out infinite; }
+.shousha[data-state=legend] .mane { animation: sc-sway 1.1s ease-in-out infinite, sc-glow 1.2s ease-in-out infinite; }
+.shousha[data-state=legend] .rig { animation: sc-hopS 1s ease-in-out infinite; }
+
+/* ─── نار ─── */
+.shousha[data-state=fire] { --hair:#FF7A3D; --hair-d:#D63F44; --aL:22deg; --fL:-36deg; --aR:-22deg; --fR:36deg; --bLy:5px; --bLr:17deg; --bRy:5px; --bRr:-17deg; --lid:-12px; }
+.shousha[data-state=fire] .m-smirk { display: none; }
+.shousha[data-state=fire] .m-grit { display: inline; }
+.shousha[data-state=fire] .flames { display: inline; }
+.shousha[data-state=fire] .fl { animation: sc-flick .42s ease-in-out infinite; }
+.shousha[data-state=fire] .f2 { animation-delay: .12s; }
+.shousha[data-state=fire] .f3 { animation-delay: .24s; }
+.shousha[data-state=fire] .rig { animation: sc-shake .16s linear infinite; }
+
+/* ─── كمّل ─── */
+.shousha[data-state=keepgoing] { --aR:-75deg; --fR:-105deg; --aL:44deg; --fL:-102deg; --bRy:-10px; --bRr:-8deg; }
+.shousha[data-state=keepgoing] .thumb { display: inline; }
+.shousha[data-state=keepgoing] .eyeR .eye-open { display: none; }
+.shousha[data-state=keepgoing] .eye-wink { display: inline; }
+.shousha[data-state=keepgoing] .armR .forearm { animation: sc-thumb .5s ease-in-out infinite; }
+.shousha[data-state=keepgoing] .rig { animation: sc-hopS .8s ease-in-out infinite; }
+.shousha[data-state=keepgoing] .fx-stars { display: inline; }
+.shousha[data-state=keepgoing] .s1,
+.shousha[data-state=keepgoing] .s4 { display: none; }
+.shousha[data-state=keepgoing] .st { animation: sc-twinkle 1s ease-in-out infinite; }
+
+/* ─── قربت ─── */
+.shousha[data-state=close] { --aL:-23deg; --fL:-59deg; --aR:23deg; --fR:59deg; --py:-9px; --bLy:-6px; --bLr:-8deg; --bRy:-6px; --bRr:8deg; }
+.shousha[data-state=close] .m-smirk { display: none; }
+.shousha[data-state=close] .m-wavy { display: inline; }
+.shousha[data-state=close] .sweat { display: inline; }
+.shousha[data-state=close] .sweat .drip { animation: sc-drip 1.1s ease-in infinite; }
+.shousha[data-state=close] .head { animation: sc-fidget .5s linear infinite; }
+
+/* ─── معلش ─── */
+.shousha[data-state=wrong] { --aL:52deg; --fL:34deg; --aR:-52deg; --fR:-34deg; --bLy:-4px; --bLr:-17deg; --bRy:-4px; --bRr:17deg; --lid:-14px; --py:4px; --hair:#E8575C; --hair-d:#B93A3F; }
+.shousha[data-state=wrong] .m-smirk { display: none; }
+.shousha[data-state=wrong] .m-sad { display: inline; }
+.shousha[data-state=wrong] .tear { display: inline; }
+.shousha[data-state=wrong] .tear .drip { animation: sc-drip 1.6s ease-in infinite; }
+.shousha[data-state=wrong] .head { animation: sc-sigh 3s ease-in-out infinite; }
+.shousha[data-state=wrong] .mane { animation: none; transform: scaleY(.93); }
+
+/* ─── أسرع ─── */
+.shousha[data-state=hurry] { --aL:-10deg; --fL:-30deg; --aR:10deg; --fR:30deg; --sc:1.1; --pp:.8; --bLy:-9px; --bLr:-14deg; --bRy:-9px; --bRr:14deg; }
+.shousha[data-state=hurry] .m-smirk { display: none; }
+.shousha[data-state=hurry] .m-grit { display: inline; }
+.shousha[data-state=hurry] .clock { display: inline; }
+.shousha[data-state=hurry] .clock-in { animation: sc-ring .12s linear infinite; }
+.shousha[data-state=hurry] .sweat { display: inline; }
+.shousha[data-state=hurry] .sweat .drip { animation: sc-drip .8s ease-in infinite; }
+.shousha[data-state=hurry] .bangs { display: inline; }
+.shousha[data-state=hurry] .bangs g { animation: sc-bangs .4s ease-in-out infinite; }
+.shousha[data-state=hurry] .rig { animation: sc-shake .2s linear infinite; }
+
+/* ─── استنى ─── */
+.shousha[data-state=wait] { --aR:-95deg; --fR:-85deg; --aL:8deg; --fL:-8deg; --sc:1.06; --bLy:-8px; --bRy:-10px; --bRr:-4deg; }
+.shousha[data-state=wait] .m-smirk { display: none; }
+.shousha[data-state=wait] .m-o { display: inline; }
+.shousha[data-state=wait] .fingers { display: inline; }
+.shousha[data-state=wait] .armR .forearm { animation: sc-palm .6s ease-in-out infinite; }
+.shousha[data-state=wait] .bangs { display: inline; }
+.shousha[data-state=wait] .bangs g { animation: sc-bangs .6s ease-in-out infinite; }
+
+/* ─── ركّز ─── */
+.shousha[data-state=focus] { --aR:30deg; --fR:141deg; --aL:10deg; --fL:-20deg; --lid:-8px; --px:-5px; --py:7px; --bLr:10deg; --bLy:2px; --bRr:-10deg; --bRy:2px; }
+.shousha[data-state=focus] .m-smirk { display: none; }
+.shousha[data-state=focus] .m-flat { display: inline; }
+.shousha[data-state=focus] .glasses-nerd { display: inline; }
+.shousha[data-state=focus] .head { animation: sc-think 2.8s ease-in-out infinite; }
+
+/* ─── مفاجأة ─── */
+.shousha[data-state=surprise] { --aL:128deg; --fL:42deg; --aR:-128deg; --fR:-42deg; --sc:1.16; --pp:.55; --bLy:-14px; --bRy:-14px; --bLr:-4deg; --bRr:4deg; }
+.shousha[data-state=surprise] .m-smirk { display: none; }
+.shousha[data-state=surprise] .m-o { display: inline; }
+.shousha[data-state=surprise] .mouths { transform: translate(200px,244px) scale(1.25); transform-origin: 0 0; }
+.shousha[data-state=surprise] .bangs { display: inline; }
+.shousha[data-state=surprise] .bangs g { animation: sc-bangs .5s ease-in-out infinite; }
+.shousha[data-state=surprise] .mane { animation: none; transform: scale(1.08); }
+.shousha[data-state=surprise] .rig { animation: sc-jolt 1.4s ease-out infinite; }
+
+/* ─── بطل ─── */
+.shousha[data-state=hero] { --halo:#fff; --aL:-10deg; --fL:-30deg; --aR:10deg; --fR:30deg; --bLy:-8px; --bRy:-8px; --bLr:-6deg; --bRr:6deg; }
+.shousha[data-state=hero] .m-smirk { display: none; }
+.shousha[data-state=hero] .m-open { display: inline; }
+.shousha[data-state=hero] .eye-open { display: none; }
+.shousha[data-state=hero] .eye-happy { display: inline; }
+.shousha[data-state=hero] .crown { display: inline; }
+.shousha[data-state=hero] .crown-in { transform-origin: 200px 84px; animation: sc-pop .5s cubic-bezier(.3,1.5,.5,1) both; }
+.shousha[data-state=hero] .trophy { display: inline; }
+.shousha[data-state=hero] .trophy-in { animation: sc-ring 1.2s ease-in-out infinite; }
+.shousha[data-state=hero] .fx-halo { display: inline; }
+.shousha[data-state=hero] .fx-halo .spin { animation: sc-spin 14s linear infinite; }
+.shousha[data-state=hero] .fx-stars { display: inline; }
+.shousha[data-state=hero] .st { animation: sc-twinkle .9s ease-in-out infinite; }
+.shousha[data-state=hero] .rig { animation: sc-hopS .9s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .shousha * { animation: none !important; }
 }
