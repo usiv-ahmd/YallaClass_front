@@ -7,7 +7,6 @@ import {
   MIN_OPTIONS,
 } from "../constants/questions.js";
 import {
-  buildQuestionPayload,
   questionToForm,
 } from "../adapters/quiz.adapter.js";
 
@@ -60,20 +59,13 @@ function useQuestionsForm({ questions = [], addQuestion, updateQuestion, deleteQ
     event.preventDefault();
     setFormError(null);
 
-    let payload;
-
-    try {
-      payload = buildQuestionPayload({
-        text,
-        options,
-        correctIndex,
-        points,
-        timeLimitSec,
-      });
-    } catch (error) {
-      setFormError(error.message || "راجع بيانات السؤال.");
-      return;
-    }
+    const payload = {
+      text,
+      options,
+      correctIndex,
+      points: Number(points),
+      timeLimitSec: Number(timeLimitSec),
+    };
 
     setBusy(true);
 
