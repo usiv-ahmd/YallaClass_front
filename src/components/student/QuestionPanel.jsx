@@ -1,28 +1,40 @@
 // src/components/student/QuestionPanel.jsx
 import { Check, Clock3, Flame, Sparkles, Timer, Users, X, Zap } from "lucide-react";
-import { QUESTION_TYPE_LABELS, ANSWER_COLORS } from "../../constants/questions.js";
 
-export default function QuestionPanel({ liveState, session, currentQuestion, questionIndex, questions, duration, timeLeft, currentAnswer, freshStudent, totalStudents, onChoose }) {
-  if (!currentQuestion) return null;
-  if (!["question", "paused", "reveal"].includes(liveState)) return null;
+import { ANSWER_COLORS } from "../../constants/questions.js";
 
-  const isQuestion = liveState === "question";
-  const isPaused = liveState === "paused";
-  const isReveal = liveState === "reveal";
-  const disabled = !isQuestion;
-  const revealAnswers = isReveal;
-  const answer = currentAnswer;
-  const safeTimeLeft = Number.isFinite(timeLeft) ? timeLeft : duration;
-  const displayedTime = isReveal ? 0 : safeTimeLeft;
-  const progress = isReveal ? 0 : (duration > 0 ? Math.max(0, Math.min(1, safeTimeLeft / duration)) : 0);
-  const timerMood = progress <= 0.25 ? "is-danger" : progress <= 0.5 ? "is-warning" : "";
-  const index = questionIndex;
-  const total = questions.length;
-  const type = currentQuestion.type ?? "mcq";
-  const typeLabel = QUESTION_TYPE_LABELS[type] ?? type;
-  const isTf = type === "true_false";
-  const correctIndex = currentQuestion.correctOptionIndex;
-  const showCorrect = revealAnswers && correctIndex !== null && correctIndex !== undefined;
+export default function QuestionPanel({
+  question,
+  phase,
+  remainingMs,
+  selectedOptionId,
+  answer,
+  onChoose,
+  disabled,
+  totalStudents,
+  answeredCount,
+  participant,
+  you,
+}) {
+  if (!question) return null;
+
+  const isQuestion = phase === "QUESTION";
+  const isReveal = phase === "REVEAL";
+  const isPaused = phase === "PAUSED";
+  const revealed = isReveal || phase === "EXPLANATION" || phase === "POINTS";
+
+  const safeRemaining = Number.isFinite(remainingMs) ? remainingMs : 0;
+  const durationMs = (question.timeLimitSec || 10) * 1000;
+  const progress =
+    isQuestion && durationMs > 0
+      ? Math.max(0, Math.min(1, safeRemaining / durationMs))
+      : 0;
+  const timerMood =
+    progress <= 0.25 ? "is-danger" : progress <= 0.5 ? "is-warning" : "";
+
+  const selected = selectedOptionId || answer?.selectedOptionId || null;
+  const isCorrect = answer?.isCorrect === true;
+  const pointsAwarded = answer?.pointsAwarded ?? null;
 
   return (
     <>
@@ -34,46 +46,43 @@ export default function QuestionPanel({ liveState, session, currentQuestion, que
 
       <div className="question-meta-row">
         <div className="question-header-title">
-          <span>أهلاً يا {freshStudent.name}</span>
-          <h2>{session.title ?? "حصة"}</h2>
+          <span>أهلاً يا {participant?.nickname || participant?.name}</span>
+          <h2>{question.text}</h2>
         </div>
 
         <span className="mini-label">
-          سؤال {index + 1} من {total}
+          سؤال {(question.order ?? 0) + 1} · {question.points} نقطة
         </span>
 
         <div className="question-stats">
           <span className="stat-chip">
             <Users size={16} /> {totalStudents} <small>طالب</small>
           </span>
-          <span className="stat-chip stat-chip-correct">
-            <Check size={16} /> {freshStudent.correctAnswers} <small>صح</small>
-          </span>
-          <span className="stat-chip stat-chip-wrong">
-            <X size={16} /> {freshStudent.wrongAnswers} <small>غلط</small>
-          </span>
           <span className="stat-chip">
-            <Zap size={16} /> {freshStudent.score} <small>نقطة</small>
+            <Zap size={16} /> {you?.score ?? participant?.score ?? 0} <small>نقطة</small>
           </span>
           <span className="stat-chip stat-chip--streak">
-            <Flame size={16} /> {freshStudent.highestStreak} <small>streak</small>
+            <Flame size={16} /> {you?.streak ?? participant?.streak ?? 0} <small>streak</small>
+          </span>
+          <span className="stat-chip">
+            <Check size={16} /> {answeredCount} <small>أجابوا</small>
           </span>
         </div>
-      </div>
-
-      <div className="question-progress" style={{ "--total": total }}>
-        {Array.from({ length: total }, (_, i) => (
-          <span className={"question-progress-step student-step" + (i < index ? " is-done" : "") + (i === index ? " is-current" : "")} key={i} />
-        ))}
       </div>
 
       <div className="question-main-row">
         <div className="question-copy">
-          <h2>{currentQuestion.text ?? currentQuestion.question}</h2>
+          <h2>{question.text}</h2>
         </div>
-        <div className={`timer-ring ${timerMood}`} style={{ "--timer-angle": `${progress * 360}deg` }} role="timer">
+        <div
+          className={`timer-ring ${timerMood}`}
+          style={{ "--timer-angle": `${progress * 360}deg` }}
+          role="timer"
+        >
           <div className="timer-ring-inner">
-            <Clock3 size={15} /><strong>{Math.ceil(displayedTime)}</strong><small>ث</small>
+            <Clock3 size={15} />
+            <strong>{Math.ceil(safeRemaining / 1000)}</strong>
+            <small>ث</small>
           </div>
         </div>
       </div>
@@ -81,81 +90,90 @@ export default function QuestionPanel({ liveState, session, currentQuestion, que
       <div className="answer-prompt">
         <Sparkles size={18} />
         <span>
-          {isTf ? "اختار صح أو غلط" : "اختار إجابتك"}
-          <small className="question-type-tag">
-            · {typeLabel}
-          </small>
+          {isQuestion ? "اختار إجابتك" : "المراجعة"}
+          <small className="question-type-tag">· {question.timeLimitSec} ثانية</small>
         </span>
       </div>
 
-      <div className={`answer-grid${isTf ? " answer-grid--tf" : ""}`}>
-        {(currentQuestion.options || []).map((option, optIndex) => {
-          const isCorrectOption = showCorrect && optIndex === correctIndex;
-          const isSelected = answer?.selectedOption === optIndex;
-          const resultState = answer?.resultState;
+      <div className="answer-grid">
+        {(question.options || []).map((option, optIndex) => {
+          const isSelected = selected === option.id;
+          const isCorrectOption = revealed && option.isCorrect === true;
+          const stateClass = isSelected
+            ? isCorrect
+              ? " answer-option-correct"
+              : " answer-option-wrong"
+            : revealed && isCorrectOption
+              ? " answer-option-correct"
+              : revealed
+                ? " answer-option-muted"
+                : "";
 
-          let stateClass = "";
-          if (isSelected) {
-            if (resultState === "correct") stateClass = " answer-option-correct";
-            else if (resultState === "wrong") stateClass = " answer-option-wrong";
-          } else if (showCorrect) {
-            stateClass = isCorrectOption ? " answer-option-correct" : " answer-option-muted";
-          }
-
-          const colorClass = isTf ? (optIndex === 0 ? " pink" : " purple") : ` ${ANSWER_COLORS[optIndex % ANSWER_COLORS.length]}`;
-          const tfClass = isTf ? " answer-option--tf" : "";
+          const colorClass = ` ${ANSWER_COLORS[optIndex % ANSWER_COLORS.length]}`;
 
           let badge;
-          if (isSelected && resultState === "correct") {
-            badge = <Check size={isTf ? 26 : 19} strokeWidth={3} />;
-          } else if (isSelected && resultState === "wrong") {
-            badge = <X size={isTf ? 26 : 19} strokeWidth={3} />;
-          } else if (showCorrect && isCorrectOption) {
-            badge = <Check size={isTf ? 26 : 19} strokeWidth={3} />;
-          } else if (isTf) {
-            badge = optIndex === 0 ? "✓" : "✕";
-          } else {
-            badge = String.fromCharCode(65 + optIndex);
-          }
+          if (isSelected && isCorrect) badge = <Check size={19} strokeWidth={3} />;
+          else if (isSelected && !isCorrect && answer) badge = <X size={19} strokeWidth={3} />;
+          else if (revealed && isCorrectOption) badge = <Check size={19} strokeWidth={3} />;
+          else badge = String.fromCharCode(65 + optIndex);
 
           return (
-            <button type="button" className={`answer-option${tfClass}${colorClass}${stateClass}`} disabled={Boolean(answer) || disabled} onClick={() => onChoose(optIndex)} key={optIndex}>
-              <span className="answer-option-key">
-                {badge}
-              </span>
-              <span className="answer-option-text">
-                {option}
-              </span>
+            <button
+              type="button"
+              className={`answer-option${colorClass}${stateClass}`}
+              disabled={Boolean(answer) || disabled || !isQuestion}
+              onClick={() => onChoose(option.id)}
+              key={option.id}
+            >
+              <span className="answer-option-key">{badge}</span>
+              <span className="answer-option-text">{option.text}</span>
             </button>
           );
         })}
       </div>
 
       {answer && (
-        <div className={`answer-result ${answer.resultState === "correct" ? "answer-result-good" : "answer-result-retry"}`} role="status">
+        <div
+          className={`answer-result ${
+            isCorrect ? "answer-result-good" : "answer-result-retry"
+          }`}
+          role="status"
+        >
           <span className="answer-result-icon">
-            {answer.resultState === "correct" ? <Check size={20} /> : <Sparkles size={19} />}
+            {isCorrect ? <Check size={20} /> : <Sparkles size={19} />}
           </span>
           <span>
-            <strong>{answer.resultState === "correct" ? `إجابة صحيحة! +${answer.points} نقطة` : "إجابة غلط"}</strong>
-            {answer.resultState === "correct" && answer.speedBonus > 0 && (
-              <small>+{answer.speedBonus} مكافأة سرعة</small>
+            <strong>
+              {isCorrect
+                ? `إجابة صحيحة! +${pointsAwarded ?? 0} نقطة`
+                : "إجابة غلط"}
+            </strong>
+            {isCorrect && answer.doublePointsApplied && (
+              <small> (نقاط مضاعفة)</small>
             )}
-            {answer.resultState !== "correct" && revealAnswers && correctIndex !== null && (
-              <small>الإجابة الصحيحة: {currentQuestion.options?.[correctIndex]}</small>
+            {!isCorrect && isReveal && question.options?.some((o) => o.isCorrect) && (
+              <small>
+                الإجابة الصحيحة:{" "}
+                {question.options.find((o) => o.isCorrect)?.text}
+              </small>
             )}
           </span>
         </div>
       )}
 
-      {revealAnswers && !answer && correctIndex !== null && (
+      {isReveal && !answer && (
         <div className="answer-result answer-result-warn">
           <span className="answer-result-icon">
             <Timer size={20} />
           </span>
           <span>
             <strong>الوقت خلص.</strong>
-            <small>الإجابة الصحيحة: {currentQuestion.options?.[correctIndex]}</small>
+            {question.options?.some((o) => o.isCorrect) && (
+              <small>
+                الإجابة الصحيحة:{" "}
+                {question.options.find((o) => o.isCorrect)?.text}
+              </small>
+            )}
           </span>
         </div>
       )}

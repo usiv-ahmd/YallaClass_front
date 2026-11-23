@@ -1,7 +1,7 @@
 // src/pages/SessionReportPage.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, BarChart3, ClipboardList, Download, FileText, Trophy, UserCheck, Users, Zap } from "lucide-react";
+import { ArrowRight, BarChart3, Download, FileText, Trophy, UserCheck, Users, Zap } from "lucide-react";
 import { reportApi } from "../api/report.api";
 import { sessionApi } from "../api/session.api";
 import Loading from "../components/ui/Loading.jsx";
@@ -119,9 +119,9 @@ export default function SessionReportPage() {
           <span className="page-eyebrow">
             <BarChart3 size={13} /> تقرير الجلسة
           </span>
-          <h1>{session.title}</h1>
+          <h1>{session.quiz?.title || session.title}</h1>
           <p>
-            كود {session.code} · {summary?.totalParticipants} طالب ·{" "}
+            كود {session.joinCode || session.code} · {summary?.totalParticipants} طالب ·{" "}
             {fmtSeconds(summary?.durationSeconds)}
           </p>
         </div>
@@ -154,7 +154,7 @@ export default function SessionReportPage() {
             })}
           </div>
 
-          {activeTab === "summary" && <SummaryTab session={session} summary={summary} />}
+          {activeTab === "summary" && <SummaryTab summary={summary} />}
           {activeTab === "questions" && <QuestionsTab rows={questions} />}
           {activeTab === "students" && <StudentsTab rows={students} />}
           {activeTab === "attendance" && <AttendanceTab rows={attendance} />}
@@ -165,7 +165,7 @@ export default function SessionReportPage() {
   );
 }
 
-function SummaryTab({ summary, session }) {
+function SummaryTab({ summary }) {
   if (!summary) return null;
   return (
     <div className="stack-card">

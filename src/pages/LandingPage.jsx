@@ -2,7 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import { 
   Presentation, User, Sparkles, KeyRound, ArrowLeft, 
-  BrainCircuit, Swords, Trophy, Rocket, Gift, VenetianMask,
+  BrainCircuit, Swords, Trophy, Rocket, Gift,
   PlayCircle, BarChart3, ShieldCheck
 } from "lucide-react";
 import ShoushaCharacter from "../components/student/ShoushaCharacter.jsx";
@@ -24,7 +24,7 @@ export default function LandingPage() {
             <KeyRound size={16} /> انضم بكود
           </button>
           <button className="button button-primary yellow" onClick={() => navigate("/login")}>
-            دخول المدرسين
+            دخول الفريق
           </button>
         </div>
       </nav>
@@ -145,8 +145,8 @@ export default function LandingPage() {
         <div className="steps-container">
           <div className="step-card">
             <div className="step-number">1</div>
-            <h4>سجّل أو انضم</h4>
-            <p>المدرس يعمل كويز، والطالب يدخل بكود الحصة.</p>
+            <h4>ادخل أو انضم</h4>
+            <p>فريق المنظمة يعمل كويز، والطالب يدخل بكود الحصة.</p>
           </div>
           <div className="step-card">
             <div className="step-number">2</div>

@@ -187,6 +187,18 @@
 .org-col-action { width: 60px; }
 .org-td-center  { text-align: center; }
 
+/* Shared account/organization status badges (used by organization + admin). */
+.status-badge-active {
+  background: var(--C-yalla-success-15);
+  color: var(--C-yalla-success);
+  border: 2px solid var(--C-yalla-success-30);
+}
+.status-badge-suspended {
+  background: var(--C-yalla-danger-Sdark-hover);
+  color: var(--C-yalla-danger);
+  border: 2px solid var(--C-yalla-danger-40);
+}
+
 /* ── Landing / Link Cards ────────────────────────────────── */
 .link-card {
   text-decoration: none;

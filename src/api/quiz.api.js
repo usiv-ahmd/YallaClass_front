@@ -10,8 +10,11 @@ export const quizApi = {
   duplicate: (quizId) => client.quiz.duplicate(quizId),
   archive: (quizId, archived) => client.quiz.archive(quizId, archived),
 
-  updateQuestions: (quizId, questions) => client.quiz.updateQuestions(quizId, questions),
+  listQuestions: (quizId) => client.quiz.listQuestions(quizId),
+  getQuestion: (quizId, questionId) => client.quiz.getQuestion(quizId, questionId),
   addQuestion: (quizId, question) => client.quiz.addQuestion(quizId, question),
-  updateQuestion: (quizId, qid, patch) => client.quiz.updateQuestion(quizId, qid, patch),
-  deleteQuestion: (quizId, qid) => client.quiz.deleteQuestion(quizId, qid),
+  updateQuestion: (quizId, questionId, patch) =>
+    client.quiz.updateQuestion(quizId, questionId, patch),
+  deleteQuestion: (quizId, questionId) =>
+    client.quiz.deleteQuestion(quizId, questionId),
 };

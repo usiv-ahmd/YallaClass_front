@@ -79,6 +79,7 @@ const _organizations = makeCollection("organizations");
 const _quizzes = makeCollection("quizzes");
 const _sessions = makeCollection("sessions");
 const _sections = makeCollection("sections");
+const _students = makeCollection("students");
 
 const tokens = {
   save(token, userId) {
@@ -125,6 +126,8 @@ export const db = {
   },
 
   sections: _sections,
+
+  students: _students,
 
   tokens,
 

@@ -1,303 +1,351 @@
 // src/pages/StudentSessionPage.jsx
-import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Timer, Trophy, Users, Zap, X, Gift, VenetianMask, Rocket } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  Trophy,
+  Users,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
+
 import { usePlayerSession } from "../hooks/usePlayerSession";
-import { useReaction } from "../hooks/useReaction";
-import { useAvatarReaction } from "../hooks/useAvatarReaction";
-import Loading from "../components/ui/Loading.jsx";
+import { CONNECTION_STATUS } from "../realtime/events";
+import StudentJoinPage from "./StudentJoinPage.jsx";
 import CommandTargetPicker from "../components/modals/CommandTargetPicker.jsx";
 import QuestionPanel from "../components/student/QuestionPanel.jsx";
-import ShoushaCharacter from "../components/student/ShoushaCharacter.jsx";
-import LeaderboardPopup from "../components/student/LeaderboardPopup.jsx";
-import { Reaction } from "../components/Reaction.jsx";
+import StudentAvatar from "../components/student/StudentAvatar.jsx";
+import Loading from "../components/ui/Loading.jsx";
+import "../styles/student-page.css";
 
-const STATE_LABEL = { lobby: "اللوبي", countdown: "استعد", question: "السؤال شغال", paused: "متوقف مؤقتًا", reveal: "المراجعة", explanation: "الشرح", leaderboard: "المتصدرين", finished: "خلصت" };
+const COMMAND_LABELS = {
+  gift: "هدية",
+  thief: "سرقة",
+  rocket: "صاروخ",
+};
 
-const COMMAND_ICONS = {
-  gift: <Gift size={20} />,
-  thief: <VenetianMask size={20} />,
-  rocket: <Rocket size={20} />,
+const COMMAND_EMOJI = {
+  gift: "🎁",
+  thief: "🥷",
+  rocket: "🚀",
 };
 
 export default function StudentSessionPage() {
-  const { sessionId } = useParams();
+  const { code: routeCode } = useParams();
+  const code = String(routeCode || "").trim().toUpperCase();
   const navigate = useNavigate();
-  const p = usePlayerSession(sessionId);
+  const session = usePlayerSession(code);
 
-  const answerState = p.currentAnswer
-    ? (p.currentAnswer.resultState ?? (p.currentAnswer.isCorrect ? "correct" : "wrong"))
-    : "pending";
+  const [targetPickerOpen, setTargetPickerOpen] = useState(false);
+  const [selectedTarget, setSelectedTarget] = useState(null);
 
-  const { reactionKey, triggerId, onDone } = useReaction({
-    liveState: p.liveState,
-    answerState,
-    streak: p.student?.currentStreak ?? 0,
-    rank: p.myRank ?? null,
-    timeLeft: p.timeLeft ?? 0,
-    questionId: p.currentQuestion?.id ?? null,
-  });
-  const avatarState = useAvatarReaction({
-    reactionKey,
-    liveState: p.liveState,
-  });
+  const {
+    publicSession,
+    participant,
+    game,
+    loading,
+    error,
+    actionError,
+    clearActionError,
+    connection,
+    remainingMs,
+    kicked,
+    answer,
+    selectTarget,
+    leave,
+  } = session;
 
-  const [isCommandsOpen, setIsCommandsOpen] = useState(false);
-  const [targetingCmd, setTargetingCmd] = useState(null);
-  const [cmdPending, setCmdPending] = useState(false);
-  const [cmdError, setCmdError] = useState(null);
+  useEffect(() => {
+    if (kicked) {
+      // The hook already cleared storage; nothing else to do here.
+    }
+  }, [kicked]);
 
-  const handleCommandClick = async (cmd) => {
-    setCmdError(null);
-    setIsCommandsOpen(false);
-    const rules = p.commandRules?.[cmd];
-    if (!rules) return;
-    if (rules.requiresTarget) {
-      setTargetingCmd(cmd);
+  const isQuestionPhase =
+    game?.gameState === "QUESTION" || game?.gameState === "REVEAL";
+  const isPaused = game?.status === "PAUSED";
+  const isFinished = game?.status === "FINISHED";
+
+  const yourCommand = game?.yourCommand || null;
+  const activeCommand = game?.activeCommand || null;
+  const commandTargets = game?.commandTargets || [];
+
+  const leaderboard = game?.leaderboard || [];
+
+  const selectedOptionId = game?.yourAnswer?.selectedOptionId || null;
+  const submitted = Boolean(game?.yourAnswer);
+
+  const handleChoose = (optionId) => {
+    if (submitted) return;
+    answer(optionId);
+  };
+
+  const handleSelectTarget = async (targetId) => {
+    setSelectedTarget(targetId);
+    await selectTarget(targetId);
+    setTargetPickerOpen(false);
+    setSelectedTarget(null);
+  };
+
+  useEffect(() => {
+    if (
+      yourCommand?.status === "AWAITING_TARGET" &&
+      (yourCommand.type === "THIEF" || yourCommand.type === "ROCKET" || yourCommand.type === "GIFT")
+    ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setTargetPickerOpen(true);
     } else {
-      setCmdPending(true);
-      try {
-        await p.useCommand(cmd);
-      } catch (e) {
-        setCmdError(e.message || "تعذّر استخدام الأمر");
-      } finally {
-        setCmdPending(false);
-      }
+      setTargetPickerOpen(false);
     }
-  };
+  }, [yourCommand?.commandId, yourCommand?.status, yourCommand?.type]);
 
-  const handleConfirmTarget = async (targetId) => {
-    if (!targetingCmd) return;
-    setCmdPending(true);
-    setCmdError(null);
-    try {
-      await p.useCommand(targetingCmd, targetId);
-      setTargetingCmd(null);
-    } catch (e) {
-      setCmdError(e.message || "تعذّر استخدام الأمر");
-    } finally {
-      setCmdPending(false);
-    }
-  };
-
-  const handleAnswer = async (idx) => {
-    try {
-      await p.submitAnswer(idx);
-    } catch (e) {
-      alert(e.message || "تعذّر إرسال الإجابة");
-    }
-  };
-
-  const handleLeave = async () => {
-    if (!window.confirm("خروج من الحصة؟")) return;
-    await p.leave();
-    navigate("/join");
-  };
-
-  if (p.loading) {
+  if (loading && !game && !publicSession) {
     return (
       <div className="page">
-        <Loading description="ثانية" title="بنحمّل الحصة..." />
+        <Loading title="بنحمّل الجلسة..." description="ثانية" />
       </div>
     );
   }
 
-  if (!p.session) {
+  if (!participant) {
+    return <StudentJoinPage />;
+  }
+
+  if (kicked) {
     return (
       <div className="page">
-        <div className="card stack-card">
-          <p className="error-alert">
-            {p.error || "الحصة مش موجودة"}
+        <section className="card stack-card single-card">
+          <h1>تم استبعادك من الجلسة</h1>
+          <p className="card-description">
+            المدرس استبعدك من هذه الجلسة. تقدر الانضمام بجلسة جديدة بكود آخر.
           </p>
-          <Link className="button button-primary turquoise" to="/join">
+          <button
+            type="button"
+            className="button button-primary turquoise"
+            onClick={() => {
+              leave();
+              navigate("/join");
+            }}
+          >
+            رجوع للانضمام
+          </button>
+        </section>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page">
+        <section className="card stack-card single-card">
+          <p className="error-alert">{error}</p>
+          <button
+            type="button"
+            className="button button-primary ghost"
+            onClick={() => navigate("/join")}
+          >
             <ArrowLeft size={16} /> رجوع
-          </Link>
-        </div>
+          </button>
+        </section>
       </div>
     );
   }
 
-  if (!p.student) {
-    return (
-      <div className="page">
-        <div className="card stack-card">
-          <p>
-            مش لاقيينك في الجلسة دي. انضم بكود الحصة.
-          </p>
-          <Link className="button button-primary turquoise" to="/join">
-            <ArrowLeft size={16} /> انضم
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const s = p.session;
-  const q = p.currentQuestion;
-  const state = p.liveState;
-  const answer = p.currentAnswer;
 
   return (
-    <div className="page">
-
+    <div className="page student-session-page">
       <header className="card page-heading">
-        <div className="session-header-user">
-          <ShoushaCharacter hairColor={p.student.avatar?.hairColor} size={130} state={avatarState} title={`شوشة ${p.student.nickname || p.student.name}`} />
-          <div className="min-w-0">
-            <span className="page-eyebrow">
-              <Users size={13} /> {s.title}
-            </span>
-            <h1 className="mt-8">
-              أهلاً {p.student.nickname || p.student.name}!
-            </h1>
-            <p>
-              {STATE_LABEL[state] || state}
-            </p>
-          </div>
+        <div>
+          <span className="page-eyebrow">
+            <Users size={13} /> جلسة لايف
+          </span>
+          <h1>{publicSession?.quiz?.title || "جلسة لايف"}</h1>
+          <p>
+            {participant.nickname || participant.name} · كود{" "}
+            <strong dir="ltr">{code}</strong>
+          </p>
         </div>
         <div className="heading-meta">
-          {p.rocketActive && (
-            <div className="chip session-code" title="نقاطك -50% في السؤال ده">
-              <b><Rocket size={16} /> -50%</b>
-            </div>
-          )}
-          {p.myRank && (
-            <div className="chip session-code">
-              <small>ترتيبك</small>
-              <b>#{p.myRank}</b>
-            </div>
-          )}
-
-          <button className="button button-primary ghost" onClick={handleLeave}>
-            <ArrowLeft size={15} /> خروج
+          <span
+            className={`session-connection ${
+              connection === CONNECTION_STATUS.CONNECTED ? "is-online" : "is-offline"
+            }`}
+          >
+            {connection === CONNECTION_STATUS.CONNECTED ? (
+              <Wifi size={14} />
+            ) : (
+              <WifiOff size={14} />
+            )}
+            {connection === CONNECTION_STATUS.CONNECTED ? "متصل" : "غير متصل"}
+          </span>
+          <button
+            type="button"
+            className="button button-primary ghost"
+            onClick={() => {
+              leave();
+              navigate("/join");
+            }}
+          >
+            <ArrowLeft size={16} /> خروج
           </button>
         </div>
       </header>
 
+      {actionError && (
+        <p className="error-alert session-alert">
+          {actionError}
+          <button
+            type="button"
+            className="session-alert-close"
+            onClick={clearActionError}
+            aria-label="إغلاق التنبيه"
+          >
+            ×
+          </button>
+        </p>
+      )}
+
       <main className="dashboard">
-        <div className="layout col-layout">
-          <div className="screen card stack-card">
-            <Reaction reactionKey={reactionKey} triggerId={triggerId} onDone={onDone} />
-            <div className="student-question" data-answer-state={answer ? answerState : ["reveal", "explanation", "leaderboard"].includes(state) ? "reveal" : "pending"} data-live-state={state}>
-              {state === "lobby" && (
-                <div className="main-screen">
-                  <div className="state-icon">
-                    <Users size={42} />
-                  </div>
-                  <h2>مستنيين المدرس يبدأ...</h2>
-                  <p>
-                    {p.students.length} طالب في اللوبي
-                  </p>
-                  <div className="state-pulse" />
-                </div>
-              )}
-
-              {state === "countdown" && (
-                <div className="main-screen">
-                  <div className="countdown-badge">
-                    <Timer size={14} /> العد التمهيدي
-                  </div>
-                  <div className="countdown-number" key={p.countdownRemaining}>
-                    {p.countdownRemaining > 0 ? p.countdownRemaining : "يلا!"}
-                  </div>
-                  <p>استعد...</p>
-                </div>
-              )}
-
-              {["question", "paused", "reveal", "explanation"].includes(state) && q && (
-                <>
-                  <QuestionPanel currentAnswer={answer} currentQuestion={q} duration={q.duration} freshStudent={p.student} liveState={state} onChoose={handleAnswer} questionIndex={p.currentQuestionIndex} questions={s.questions || []} session={s} timeLeft={p.timeLeft} totalStudents={p.students.length} />
-
-                  {state === "question" && (
-                    <div className="commands-action-wrap">
-                      <button className="button button-primary yellow commands-action-btn" onClick={() => setIsCommandsOpen(true)}>
-                        <Zap size={18} /> أوامر اللعب
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {state === "finished" && (
-                <div className="main-screen">
-                  <div className="state-icon">
-                    <Trophy size={42} />
-                  </div>
-                  <h2>خلصت الحصة!</h2>
-                  <p>
-                    نتيجتك: <b>{p.student.score}</b> نقطة
-                  </p>
-                  <p>
-                    صح: {p.student.correctAnswers} · غلط: {p.student.wrongAnswers} · ترتيبك: #{p.student.rank}
-                  </p>
-                  <div className="state-pulse" />
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {state === "leaderboard" && (
-        <LeaderboardPopup currentQuestionIndex={p.currentQuestionIndex} me={p.student} players={p.leaderboard} />
-      )}
-
-      {targetingCmd && (
-        <CommandTargetPicker command={targetingCmd} emoji={COMMAND_ICONS[targetingCmd]} isPending={cmdPending} label={p.commandRules[targetingCmd].label} onClose={() => setTargetingCmd(null)} onConfirm={handleConfirmTarget} players={p.students} selfId={p.student.id} />
-      )}
-
-      {isCommandsOpen && (
-        <div className="opened-window-backdrop" onMouseDown={(e) => e.target === e.currentTarget && setIsCommandsOpen(false)} role="presentation">
-          <section aria-modal="true" className="card modal-window" role="dialog">
-            <div className="card-heading">
-              <div className="card-heading-title">
-                <div className="card-icon yellow">
-                  <Zap size={22} />
-                </div>
-                <div>
-                  <span className="card-kicker">
-                    أوامر اللعب
-                  </span>
-                  <h2 className="modal-title">
-                    اختار أمر
-                  </h2>
-                </div>
-              </div>
-              <button aria-label="إغلاق" className="modal-close-button" onClick={() => setIsCommandsOpen(false)} type="button">
-                <X size={17} />
-              </button>
-            </div>
-
-            <div className="modal-content">
-              <div className="type-selector commands-grid-3">
-                {["gift", "thief", "rocket"].map((cmd) => {
-                  const rules = p.commandRules?.[cmd];
-                  const used = p.commandsUsed?.[cmd] || 0;
-                  const disabled = !p.canUseCommand(cmd) || cmdPending;
-                  return (
-                    <button className={`type-chip${p.canUseCommand(cmd) ? " selected" : ""}`} disabled={disabled} key={cmd} onClick={() => handleCommandClick(cmd)} title={used >= (rules?.maxUses ?? 1) ? "استخدمته بالحد الأقصى" : !p.commandsEnabled?.[cmd] ? "الأمر مش مفعل في الجلسة" : rules?.label} type="button">
-                      <span className="flex-center-gap-8">
-                        {COMMAND_ICONS[cmd]}
-                        <span>{rules?.label}</span>
-                      </span>
-                      {used > 0 && (
-                        <small className="chip-badge">
-                          ✓
-                        </small>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {cmdError && (
-                <p className="error-alert mt-8">
-                  {cmdError}
+        {isFinished ? (
+          <section className="card stack-card">
+            <div className="session-finished">
+              <Trophy size={28} />
+              <div>
+                <h2>الجلسة خلصت</h2>
+                <p className="card-description">
+                  نتائجك: {game?.you?.score || participant.score || 0} نقطة · مرتبة{" "}
+                  {game?.you?.rank || "—"}
                 </p>
-              )}
+              </div>
+            </div>
+
+            {leaderboard.length > 0 && (
+              <div className="session-leaderboard">
+                {leaderboard.map((entry) => (
+                  <div
+                    className={`session-lb-row${
+                      entry.participantId === participant.id ? " is-first" : ""
+                    }`}
+                    key={entry.participantId}
+                  >
+                    <span className="session-lb-rank">{entry.rank}</span>
+                    <StudentAvatar avatar={entry.avatar} size={30} />
+                    <span className="session-lb-name">
+                      {entry.nickname || entry.name}
+                    </span>
+                    <strong>{entry.score}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : game?.gameState === "IDLE" || game?.gameState === "COUNTDOWN" ? (
+          <section className="card stack-card single-card">
+            <div className="join-code-card">
+              <span className="card-eyebrow">بانتظار المدرس</span>
+              <strong className="join-code-value" dir="ltr">
+                {code}
+              </strong>
+              <p className="card-description">
+                أنت في اللوبي. المدرس يبدأ الجلسة قريباً.
+              </p>
+              <div className="session-card-meta">
+                <span className="status-badge status-badge-inactive">
+                  <Users className="me-1" size={11} />
+                  {game?.questionProgress?.totalPlayers || publicSession?.participantCount || 0}
+                </span>
+                <span className="status-badge status-badge-inactive">
+                  {participant.nickname || participant.name}
+                </span>
+              </div>
             </div>
           </section>
-        </div>
+        ) : (
+          <>
+            {isQuestionPhase && game?.question && (
+              <QuestionPanel
+                question={game.question}
+                phase={game.gameState}
+                remainingMs={remainingMs}
+                selectedOptionId={selectedOptionId}
+                answer={game.yourAnswer}
+                onChoose={handleChoose}
+                disabled={submitted || isPaused}
+                totalStudents={game.questionProgress?.totalPlayers || 0}
+                answeredCount={game.questionProgress?.answeredCount || 0}
+                participant={participant}
+                you={game.you}
+              />
+            )}
+
+            {!isQuestionPhase && (
+              <section className="card stack-card">
+                <h2 className="session-phase-label">
+                  {game?.gameState ? game.gameState : "بانتظار..."}
+                </h2>
+                <p className="card-description">
+                  {game?.gameState === "LEADERBOARD" ||
+                  game?.gameState === "PHONE_LEADERBOARD"
+                    ? "شاهد الترتيب."
+                    : "انتظر المدرس."}
+                </p>
+
+                {leaderboard.length > 0 && (
+                  <div className="session-leaderboard">
+                    {leaderboard.slice(0, 10).map((entry) => (
+                      <div
+                        className={`session-lb-row${
+                          entry.participantId === participant.id ? " is-first" : ""
+                        }`}
+                        key={entry.participantId}
+                      >
+                        <span className="session-lb-rank">{entry.rank}</span>
+                        <StudentAvatar avatar={entry.avatar} size={30} />
+                        <span className="session-lb-name">
+                          {entry.nickname || entry.name}
+                        </span>
+                        <strong>{entry.score}</strong>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {activeCommand && activeCommand.type && (
+              <div className="session-command-box is-active">
+                <span className="session-command-chip">
+                  {COMMAND_LABELS[String(activeCommand.type).toLowerCase()] ||
+                    activeCommand.type}
+                </span>
+                <span>
+                  {activeCommand.status === "AWAITING_TARGET"
+                    ? "دورك لاختيار هدف"
+                    : "شغّال"}
+                </span>
+              </div>
+            )}
+          </>
+        )}
+      </main>
+
+      {targetPickerOpen && yourCommand?.status === "AWAITING_TARGET" && (
+        <CommandTargetPicker
+          command={String(yourCommand.type || "").toLowerCase()}
+          label={COMMAND_LABELS[String(yourCommand.type || "").toLowerCase()]}
+          emoji={COMMAND_EMOJI[String(yourCommand.type || "").toLowerCase()]}
+          players={commandTargets.map((target, index) => ({
+            id: target.participantId,
+            name: target.nickname || target.name,
+            score: target.score,
+            rank: index + 1,
+            avatar: { hairColor: target.avatar?.color },
+          }))}
+          selfId={participant.id}
+          onConfirm={handleSelectTarget}
+          onClose={() => setTargetPickerOpen(false)}
+          isPending={selectedTarget !== null}
+        />
       )}
     </div>
   );

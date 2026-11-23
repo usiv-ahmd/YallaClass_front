@@ -1,37 +1,16 @@
 // src/providers/mock/auth.mock.js
 import { db } from "./db";
 import { delay } from "./latency";
+import { ensureSeedData } from "./seed";
 
 const OLD_TEACHER_ID_KEY = "live-quiz:teacher-id";
 const OLD_TEACHER_NAME_KEY = "live-quiz:teacher-name";
 
 function publicUser(u) {
   if (!u) return null;
-  const { passwordHash, ...rest } = u;
+  const rest = { ...u };
+  delete rest.passwordHash;
   return rest;
-}
-
-function seedIfEmpty() {
-  if (db.users.all().length > 0) return;
-
-  const org = db.organizations.create({
-    id: "org-default",
-    name: "مؤسسة يلا كلاس التجريبية",
-    logoUrl: null,
-    timezone: "Africa/Cairo",
-    createdAt: Date.now(),
-  });
-
-  db.users.create({
-    id: "user-owner-default",
-    email: "instructor@yalla.com",
-    passwordHash: "mock-hash-instructor123",
-    name: "المدرس",
-    role: "OWNER",
-    status: "ACTIVE",
-    organizationId: org.id,
-    createdAt: Date.now(),
-  });
 }
 
 function mirrorLegacyKeys(user) {
@@ -39,6 +18,7 @@ function mirrorLegacyKeys(user) {
     localStorage.setItem(OLD_TEACHER_ID_KEY, user.id);
     localStorage.setItem(OLD_TEACHER_NAME_KEY, user.name);
   } catch {
+    // Storage can be unavailable (private mode / disabled cookies).
   }
 }
 
@@ -47,13 +27,14 @@ function clearLegacyKeys() {
     localStorage.removeItem(OLD_TEACHER_ID_KEY);
     localStorage.removeItem(OLD_TEACHER_NAME_KEY);
   } catch {
+    // Storage can be unavailable (private mode / disabled cookies).
   }
 }
 
 export const authMock = {
   async register({ email, password, name }) {
     await delay();
-    seedIfEmpty();
+    ensureSeedData();
 
     const cleanEmail = String(email || "").trim().toLowerCase();
     const cleanName = String(name || "").trim();
@@ -100,7 +81,7 @@ export const authMock = {
 
   async login({ email, password }) {
     await delay();
-    seedIfEmpty();
+    ensureSeedData();
 
     const cleanEmail = String(email || "").trim().toLowerCase();
     const user = db.users.findByEmail(cleanEmail);
@@ -109,6 +90,18 @@ export const authMock = {
     }
     if (user.status === "SUSPENDED") {
       throw { status: 403, message: "الحساب موقوف" };
+    }
+
+    if (user.organizationId) {
+      const organization = db.organizations.findById(user.organizationId);
+
+      if (!organization) {
+        throw { status: 403, message: "المنظمة مش متاحة" };
+      }
+
+      if (organization.status === "SUSPENDED") {
+        throw { status: 403, message: "المنظمة موقوفة" };
+      }
     }
 
     const token = `mock.${user.id}.${Date.now()}`;

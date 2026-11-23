@@ -1,55 +1,39 @@
 // src/hooks/useQuestionsForm.js
 import { useState } from "react";
-import { QUESTION_TYPES, DEFAULT_POINTS, MAX_POINTS, MIN_POINTS } from "../constants/questions.js";
-import { makeId, getCorrectIndex, clampNumber, clampDuration } from "../utils/questions.js";
+import {
+  DEFAULT_POINTS,
+  DEFAULT_TIME_LIMIT_SEC,
+  MAX_OPTIONS,
+  MIN_OPTIONS,
+} from "../constants/questions.js";
+import {
+  buildQuestionPayload,
+  questionToForm,
+} from "../adapters/quiz.adapter.js";
 
-function useQuestionsForm({ quiz, updateQuestions }) {
+const EMPTY_OPTIONS = ["", ""];
+
+function useQuestionsForm({ questions = [], addQuestion, updateQuestion, deleteQuestion }) {
   const [formOpen, setFormOpen] = useState(false);
-  const [type, setTypeState] = useState("mcq");
   const [text, setText] = useState("");
-  const [options, setOptions] = useState(["", "", "", ""]);
+  const [options, setOptions] = useState(EMPTY_OPTIONS);
   const [correctIndex, setCorrectIndex] = useState(0);
-  const [duration, setDuration] = useState(30);
   const [points, setPoints] = useState(DEFAULT_POINTS);
+  const [timeLimitSec, setTimeLimitSec] = useState(DEFAULT_TIME_LIMIT_SEC);
   const [editingId, setEditingId] = useState(null);
-
-  const typeConfig = QUESTION_TYPES[type];
-  const rawQuestions = quiz?.questions;
-  const questions = rawQuestions ? (Array.isArray(rawQuestions) ? rawQuestions : Object.values(rawQuestions)) : [];
-
-  const commit = async (nextQuestions) => {
-    if (typeof updateQuestions === "function") {
-      await updateQuestions(nextQuestions);
-    }
-  };
+  const [formError, setFormError] = useState(null);
+  const [busy, setBusy] = useState(false);
 
   function resetForm() {
     setFormOpen(false);
     setEditingId(null);
-    setTypeState("mcq");
     setText("");
-    setOptions(["", "", "", ""]);
+    setOptions(EMPTY_OPTIONS);
     setCorrectIndex(0);
-    setDuration(30);
     setPoints(DEFAULT_POINTS);
-  }
-
-  function setType(newType) {
-    if (!QUESTION_TYPES[newType] || newType === type) return;
-    setTypeState(newType);
-
-    if (newType === "true_false") {
-      setOptions(["صح", "غلط"]);
-      setCorrectIndex(0);
-    } else {
-      setOptions(["", "", "", ""]);
-      setCorrectIndex(0);
-    }
-
-    const durations = QUESTION_TYPES[newType].durations;
-    if (!durations.includes(Number(duration))) {
-      setDuration(durations[0]);
-    }
+    setTimeLimitSec(DEFAULT_TIME_LIMIT_SEC);
+    setFormError(null);
+    setBusy(false);
   }
 
   function startAdd() {
@@ -58,131 +42,121 @@ function useQuestionsForm({ quiz, updateQuestions }) {
   }
 
   function startEdit(question) {
-    if (!question) return;
-    const qType = QUESTION_TYPES[question.type] ? question.type : "mcq";
-    const qDurations = QUESTION_TYPES[qType].durations;
+    const form = questionToForm(question);
+    if (!form) return;
 
     setEditingId(question.id);
-    setTypeState(qType);
-    setText(question.question ?? question.text ?? "");
-
-    const qOpts = Array.isArray(question.options) ? [...question.options] : [];
-    if (qType === "true_false") {
-      setOptions(["صح", "غلط"]);
-      setCorrectIndex(Math.max(0, Math.min(1, getCorrectIndex(question))));
-    } else {
-      setOptions(qOpts.length >= 2 ? qOpts : ["", "", "", ""]);
-      setCorrectIndex(Math.max(0, getCorrectIndex(question)));
-    }
-
-    setDuration(clampDuration(question.duration, qDurations, qDurations[0]));
-    setPoints(clampNumber(question.points ?? question.weight, MIN_POINTS, MAX_POINTS, DEFAULT_POINTS));
+    setText(form.text);
+    setOptions(form.options.length >= MIN_OPTIONS ? form.options : EMPTY_OPTIONS);
+    setCorrectIndex(form.correctIndex);
+    setPoints(form.points);
+    setTimeLimitSec(form.timeLimitSec);
+    setFormError(null);
+    setBusy(false);
     setFormOpen(true);
   }
 
-  async function addQuestion(event) {
+  async function submitQuestion(event) {
     event.preventDefault();
+    setFormError(null);
 
-    if (!text.trim()) {
-      alert("اكتب نص السؤال الأول");
+    let payload;
+
+    try {
+      payload = buildQuestionPayload({
+        text,
+        options,
+        correctIndex,
+        points,
+        timeLimitSec,
+      });
+    } catch (error) {
+      setFormError(error.message || "راجع بيانات السؤال.");
       return;
     }
 
-    const safeDuration = clampDuration(duration, typeConfig.durations, typeConfig.durations[0]);
-    const safePoints = clampNumber(points, MIN_POINTS, MAX_POINTS, DEFAULT_POINTS);
-
-    let finalOptions = [];
-    let finalCorrectIndex = -1;
-
-    if (typeConfig.hasOptions) {
-      if (type === "true_false") {
-        finalOptions = ["صح", "غلط"];
-        finalCorrectIndex = correctIndex === 1 ? 1 : 0;
-      } else {
-        finalOptions = options.map((o) => o.trim());
-        if (finalOptions.some((o) => !o)) {
-          alert("كل الخيارات لازم تكون مكتوبة");
-          return;
-        }
-        if (finalOptions.length < 2) {
-          alert("لازم يكون فيه على الأقل خيارين");
-          return;
-        }
-        finalCorrectIndex = Math.min(correctIndex, finalOptions.length - 1);
-      }
-    }
+    setBusy(true);
 
     try {
       if (editingId) {
-        await commit(
-          questions.map((q) =>
-            q.id === editingId
-              ? {
-                  ...q,
-                  type,
-                  text: text.trim(),
-                  options: finalOptions,
-                  correctOptionIndex: finalCorrectIndex,
-                  duration: safeDuration,
-                  weight: safePoints,
-                }
-              : q
-          )
-        );
+        await updateQuestion(editingId, payload);
       } else {
-        const newQuestion = {
-          id: makeId("question"),
-          type,
-          text: text.trim(),
-          options: finalOptions,
-          correctOptionIndex: finalCorrectIndex,
-          duration: safeDuration,
-          weight: safePoints,
-        };
-        await commit([...questions, newQuestion]);
+        await addQuestion(payload);
       }
       resetForm();
-    } catch (e) {
-      console.error("[addQuestion]", e);
-      alert("حصل خطأ أثناء حفظ السؤال، حاول تاني");
+    } catch (error) {
+      setFormError(error.message || "حصل خطأ أثناء حفظ السؤال، حاول تاني.");
+    } finally {
+      setBusy(false);
     }
   }
 
   function updateOption(index, value) {
-    setOptions((cur) => cur.map((o, i) => (i === index ? value : o)));
+    setOptions((current) =>
+      current.map((option, optionIndex) =>
+        optionIndex === index ? value : option
+      )
+    );
+  }
+
+  function addOption() {
+    setOptions((current) =>
+      current.length >= MAX_OPTIONS ? current : [...current, ""]
+    );
   }
 
   function removeOption(index) {
-    setOptions((cur) => cur.filter((_, i) => i !== index));
-    setCorrectIndex((cur) => cur === index ? Math.max(0, index - 1) : cur > index ? cur - 1 : cur);
+    setOptions((current) => {
+      if (current.length <= MIN_OPTIONS) return current;
+
+      return current.filter((_, optionIndex) => optionIndex !== index);
+    });
+
+    setCorrectIndex((current) => {
+      if (current === index) return Math.max(0, index - 1);
+      if (current > index) return current - 1;
+      return current;
+    });
   }
 
-  async function deleteQuestion(questionId) {
+  async function removeQuestion(questionId) {
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm("حذف السؤال؟ لا يمكن التراجع.")
+    ) {
+      return;
+    }
+
     try {
-      await commit(questions.filter((item) => item.id !== questionId));
+      await deleteQuestion(questionId);
       if (editingId === questionId) resetForm();
-    } catch (e) {
-      console.error("[deleteQuestion]", e);
-      alert("حصل خطأ أثناء حذف السؤال، حاول تاني");
+    } catch (error) {
+      alert(error.message || "حصل خطأ أثناء حذف السؤال، حاول تاني.");
     }
   }
 
   return {
     questions,
-    formOpen, setFormOpen,
-    type, setType,
-    text, setText,
-    options, setOptions,
-    correctIndex, setCorrectIndex,
-    duration, setDuration,
-    points, setPoints,
-    addQuestion,
-    updateOption,
-    removeOption,
-    deleteQuestion,
+    formOpen,
+    text,
+    setText,
+    options,
+    correctIndex,
+    setCorrectIndex,
+    points,
+    setPoints,
+    timeLimitSec,
+    setTimeLimitSec,
     editingId,
+    formError,
+    busy,
     startAdd,
     startEdit,
+    submitQuestion,
+    updateOption,
+    addOption,
+    removeOption,
+    deleteQuestion: removeQuestion,
     cancelForm: resetForm,
   };
 }

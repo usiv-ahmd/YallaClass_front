@@ -1,114 +1,221 @@
 // src/pages/StudentJoinPage.jsx
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, KeyRound, User, Palette } from "lucide-react";
-import { sessionApi } from "../api/session.api";
-import { storePlayerSeat } from "../hooks/usePlayerSession";
-import ShoushaCharacter from "../components/student/ShoushaCharacter.jsx";
-import ColorPicker from "../components/ui/ColorPicker.jsx";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  ArrowLeft,
+  KeyRound,
+  Palette,
+} from "lucide-react";
+
+import { usePlayerSession } from "../hooks/usePlayerSession";
+import { AVATAR_COLORS, AVATAR_PRESETS } from "../adapters/roster.adapter.js";
+import Loading from "../components/ui/Loading.jsx";
 import "../styles/student-page.css";
+
+function defaultAvatar() {
+  return { preset: "FOX", color: "#3B82F6" };
+}
 
 export default function StudentJoinPage() {
   const navigate = useNavigate();
-  const [code, setCode] = useState("");
+  const params = useParams();
+  const routeCode = String(params.code || "").trim().toUpperCase();
+
+  const [code, setCode] = useState(routeCode);
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
-  const [hairColor, setHairColor] = useState("#FF5A5F");
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
-
+  const [avatar, setAvatar] = useState(defaultAvatar());
+  const [showAvatar, setShowAvatar] = useState(false);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const session = usePlayerSession(code || "");
+  const publicSession = session.publicSession;
+
+  useEffect(() => {
+    if (session.participant) {
+      navigate(`/join/${code}`, { replace: true });
+    }
+  }, [session.participant, code, navigate]);
+
+  const canSubmit = useMemo(() => {
+    if (!code || code.length !== 6) return false;
+    if (!nickname.trim()) return false;
+    return true;
+  }, [code, nickname]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setError(null);
     setBusy(true);
+
     try {
-      const res = await sessionApi.join({
+      await session.join({
         code,
-        name,
-        nickname: nickname || name,
-        avatar: { hairColor },
+        name: name.trim(),
+        nickname: nickname.trim(),
+        avatar,
       });
-      storePlayerSeat(res.data.session.id, res.data.student);
-      navigate(`/join/${res.data.session.id}`, { replace: true });
-    } catch (err) {
-      setError(err.message || "تعذّر الانضمام");
+    } catch (e) {
+      setError(e.message || "تعذّر الانضمام للجلسة");
     } finally {
       setBusy(false);
     }
   };
 
+  if (session.loading && !publicSession) {
+    return (
+      <div className="page">
+        <Loading title="بنحمّل الجلسة..." description="ثانية" />
+      </div>
+    );
+  }
+
   return (
-    <div className="page">
-      <div className="dashboard">
-        <div className="layout">
-          <div className="card stack-card auth-container">
-            <div className="card-heading">
-              <div className="card-heading-title">
-                <span className="card-icon yellow">
-                  <KeyRound size={26} />
-                </span>
-                <div>
-                  <span className="card-eyebrow">
-                    انضم في ثواني
-                  </span>
-                  <h2>ادخل الحصة</h2>
-                </div>
-              </div>
+    <div className="page student-join-page">
+      <header className="card page-heading">
+        <div>
+          <span className="page-eyebrow">
+            <KeyRound size={13} /> انضمام للجلسة
+          </span>
+          <h1>انضم إلى جلسة لايف</h1>
+          <p>أدخل كود الجلسة واسمك عشان تدخل مع زملائك.</p>
+        </div>
+        <LinkButton navigate={navigate} />
+      </header>
+
+      <main className="dashboard">
+        <section className="card stack-card single-card">
+          {session.error && <p className="error-alert">{session.error}</p>}
+          {error && <p className="error-alert">{error}</p>}
+
+          {!routeCode && (
+            <div className="field">
+              <label>كود الجلسة</label>
+              <input
+                type="text"
+                value={code}
+                onChange={(event) =>
+                  setCode(event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))
+                }
+                placeholder="ABC123"
+                dir="ltr"
+                maxLength={6}
+                autoComplete="off"
+              />
+            </div>
+          )}
+
+          {publicSession && (
+            <div className="student-session-summary">
+              <strong>{publicSession.quiz?.title || "جلسة لايف"}</strong>
+              <span>
+                {publicSession.quiz?.questionCount || 0} سؤال ·{" "}
+                {publicSession.participantCount || 0} طالب
+              </span>
+              <span
+                className={`status-badge ${
+                  publicSession.status === "LIVE"
+                    ? "session-status-live"
+                    : "session-status-lobby"
+                }`}
+              >
+                {publicSession.status === "LIVE" ? "شغّالة" : "لوبي"}
+              </span>
+            </div>
+          )}
+
+          <form className="modal-content" onSubmit={handleSubmit}>
+            <div className="field">
+              <label>اسم الشهرة</label>
+              <input
+                type="text"
+                value={nickname}
+                onChange={(event) => setNickname(event.target.value)}
+                placeholder="اسمك في الحصة"
+                maxLength={50}
+                required
+              />
             </div>
 
-            <form className="join-form" onSubmit={handleSubmit}>
-              <label>اسم الشهرة (اختياري)</label>
-              <div className="input-wrap">
-                <User size={16} />
-                <input id="join-nick" maxLength={24} placeholder="مثال: أحمد" type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} />
-              </div>
+            <div className="field">
+              <label>الاسم (اختياري)</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="اسمك الكامل"
+                maxLength={80}
+              />
+            </div>
 
-              <label>اسمك</label>
-              <div className="input-wrap">
-                <User size={16} />
-                <input id="join-name" maxLength={24} placeholder="الاسم الكامل" required type="text" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
+            <button
+              type="button"
+              className="button button-primary ghost"
+              onClick={() => setShowAvatar((value) => !value)}
+            >
+              <Palette size={16} />
+              {showAvatar ? "إخفاء الأفاتار" : "اختيار أفاتار"}
+            </button>
 
-              <label>كود الحصة</label>
-              <div className="input-wrap">
-                <KeyRound size={16} />
-                <input autoFocus id="join-code" maxLength={8} placeholder="ABC123" required type="text" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} />
-              </div>
-
-              <label>لون شوشة (الأفاتار)</label>
-              <div className="color-picker-container">
-                <button className="custom-color-button" style={{ "--hair": hairColor }} title="دوس لتغيير اللون" type="button" onClick={() => setIsPickerOpen(true)}>
-                  <Palette color={hairColor === "#FFFFFF" || hairColor === "#FFD23F" ? "#000" : "#FFF"} size={26} />
-                </button>
-
-                <div className="color-picker-preview">
-                  <ShoushaCharacter hairColor={hairColor} mode="full" size={130} />
+            {showAvatar && (
+              <div className="avatar-picker">
+                <div className="type-selector">
+                  {AVATAR_PRESETS.map((preset) => (
+                    <button
+                      type="button"
+                      key={preset.id}
+                      className={`type-chip${avatar.preset === preset.id ? " selected" : ""}`}
+                      onClick={() =>
+                        setAvatar((prev) => ({ ...prev, preset: preset.id }))
+                      }
+                      aria-pressed={avatar.preset === preset.id}
+                    >
+                      {preset.emoji} {preset.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="type-selector">
+                  {AVATAR_COLORS.map((color) => (
+                    <button
+                      type="button"
+                      key={color.id}
+                      className={`type-chip${avatar.color === color.id ? " selected" : ""}`}
+                      style={{ background: color.id, color: "#fff" }}
+                      onClick={() =>
+                        setAvatar((prev) => ({ ...prev, color: color.id }))
+                      }
+                      aria-pressed={avatar.color === color.id}
+                    >
+                      {color.label}
+                    </button>
+                  ))}
                 </div>
               </div>
+            )}
 
-              {error && <p className="error-alert">
-                {error}
-              </p>}
-
-              <button className="button button-center button-primary turquoise join-submit" disabled={busy} type="submit">
-                {busy ? "بندخّلك..." : "ادخل الحصة"}
-              </button>
-
-              <span className="auth-back">
-                <Link to="/">
-                  <ArrowLeft size={14} /> رجوع
-                </Link>
-              </span>
-            </form>
-          </div>
-        </div>
-      </div>
-
-      {isPickerOpen && (
-        <ColorPicker color={hairColor} onChange={setHairColor} onClose={() => setIsPickerOpen(false)} />
-      )}
+            <button
+              type="submit"
+              className="button button-primary turquoise"
+              disabled={busy || !canSubmit}
+            >
+              {busy ? "بننضم..." : "انضم للجلسة"}
+            </button>
+          </form>
+        </section>
+      </main>
     </div>
+  );
+}
+
+function LinkButton({ navigate }) {
+  return (
+    <button
+      type="button"
+      className="button button-primary ghost"
+      onClick={() => navigate("/")}
+    >
+      <ArrowLeft size={16} /> رجوع
+    </button>
   );
 }

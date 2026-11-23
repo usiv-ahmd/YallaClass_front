@@ -1,21 +1,38 @@
 // src/pages/QuizEditorPage.jsx
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowRight, Check, FileQuestion, Pencil, Settings2, X } from "lucide-react";
+import { ArrowRight, Check, Clock3, FileQuestion, Pencil, Settings2, X } from "lucide-react";
 import { useQuiz } from "../store/quiz.store.jsx";
 import { useQuestionsForm } from "../hooks/useQuestionsForm.js";
 import QuestionsPanel from "../components/instructor/QuestionsPanel.jsx";
-import UploadPanel from "../components/instructor/UploadPanel.jsx";
 import QuestionFormWindow from "../components/modals/QuestionFormWindow.jsx";
 import Loading from "../components/ui/Loading.jsx";
+import {
+  QUIZ_DESCRIPTION_MAX_LENGTH,
+  QUIZ_TITLE_MAX_LENGTH,
+} from "../adapters/quiz.adapter.js";
 
 function QuizEditorPage() {
   const { quizId } = useParams();
   const navigate = useNavigate();
-  const { quiz, asSession, loading, error, saveMeta, updateQuestions } = useQuiz(quizId);
-  const question = useQuestionsForm({ quiz: asSession, updateQuestions });
+  const {
+    quiz,
+    questions,
+    loading,
+    error,
+    saveMeta,
+    addQuestion,
+    updateQuestion,
+    deleteQuestion,
+  } = useQuiz(quizId);
+  const question = useQuestionsForm({
+    questions,
+    addQuestion,
+    updateQuestion,
+    deleteQuestion,
+  });
   const [metaOpen, setMetaOpen] = useState(false);
-  const [metaDraft, setMetaDraft] = useState({ title: "", subject: "", tags: "" });
+  const [metaDraft, setMetaDraft] = useState({ title: "", description: "" });
   const [metaError, setMetaError] = useState(null);
   const [metaBusy, setMetaBusy] = useState(false);
 
@@ -24,14 +41,9 @@ function QuizEditorPage() {
     setMetaError(null);
     setMetaBusy(true);
     try {
-      const tags = metaDraft.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
       await saveMeta({
         title: metaDraft.title,
-        subject: metaDraft.subject,
-        tags,
+        description: metaDraft.description,
       });
       setMetaOpen(false);
     } catch (err) {
@@ -41,15 +53,14 @@ function QuizEditorPage() {
     }
   };
 
-  useEffect(() => {
-    if (quiz) {
-      setMetaDraft({
-        title: quiz.title || "",
-        subject: quiz.subject || "",
-        tags: (quiz.tags || []).join(", "),
-      });
-    }
-  }, [quiz?.id]);
+  const openMeta = () => {
+    setMetaDraft({
+      title: quiz?.title || "",
+      description: quiz?.description || "",
+    });
+    setMetaError(null);
+    setMetaOpen(true);
+  };
 
   if (loading) {
     return (
@@ -79,19 +90,24 @@ function QuizEditorPage() {
       <header className="card page-heading">
         <div>
           <span className="page-eyebrow">
-            <FileQuestion size={13} /> {quiz.questionCount ?? 0} سؤال
-            {quiz.subject ? ` · ${quiz.subject}` : ""}
+            <FileQuestion size={13} /> {questions.length} سؤال
+            {quiz.estimatedDurationSec > 0 && (
+              <>
+                {" · "}
+                <Clock3 size={13} /> {Math.ceil(quiz.estimatedDurationSec / 60)} دقيقة
+              </>
+            )}
           </span>
           <h1>{quiz.title}</h1>
-          {(quiz.tags || []).length > 0 && (
+          {quiz.description && (
             <p className="mt-6">
-              {quiz.tags.map((t) => `#${t}`).join("  ")}
+              {quiz.description}
             </p>
           )}
         </div>
 
         <div className="heading-meta">
-          <button className="button button-primary ghost" onClick={() => setMetaOpen(true)} type="button">
+          <button className="button button-primary ghost" onClick={openMeta} type="button">
             <Settings2 size={15} /> تعديل البيانات
           </button>
           <Link className="button button-primary ghost" to="/library">
@@ -103,7 +119,7 @@ function QuizEditorPage() {
       <main className="dashboard">
         <div className="layout">
           <div className="workspace">
-            {quiz.questionCount === 0 && (
+            {questions.length === 0 && (
               <div className="card stack-card">
                 <div className="card-heading">
                   <div className="card-heading-title">
@@ -125,8 +141,7 @@ function QuizEditorPage() {
             )}
 
             <div className="questions">
-              <QuestionsPanel description="أضف أو عدّل الأسئلة. التغييرات بتتحفظ تلقائيًا." question={question} />
-              <UploadPanel />
+              <QuestionsPanel description="أضف أو عدّل الأسئلة. كل سؤال بينحفظ فورًا." question={question} />
             </div>
           </div>
         </div>
@@ -161,17 +176,12 @@ function QuizEditorPage() {
             <form className="modal-content" onSubmit={handleSaveMeta}>
               <label>العنوان</label>
               <div className="input-wrap">
-                <input maxLength={80} onChange={(e) => setMetaDraft({ ...metaDraft, title: e.target.value })} required type="text" value={metaDraft.title} />
+                <input maxLength={QUIZ_TITLE_MAX_LENGTH} onChange={(e) => setMetaDraft({ ...metaDraft, title: e.target.value })} required type="text" value={metaDraft.title} />
               </div>
 
-              <label>المادة / الصف</label>
-              <div className="input-wrap">
-                <input onChange={(e) => setMetaDraft({ ...metaDraft, subject: e.target.value })} type="text" value={metaDraft.subject} />
-              </div>
-
-              <label>وسوم (مفصولة بفواصل)</label>
-              <div className="input-wrap">
-                <input onChange={(e) => setMetaDraft({ ...metaDraft, tags: e.target.value })} type="text" value={metaDraft.tags} />
+              <label>الوصف (اختياري)</label>
+              <div className="question-input-wrap">
+                <textarea maxLength={QUIZ_DESCRIPTION_MAX_LENGTH} onChange={(e) => setMetaDraft({ ...metaDraft, description: e.target.value })} rows={3} value={metaDraft.description} />
               </div>
 
               {metaError && <p className="error-alert">

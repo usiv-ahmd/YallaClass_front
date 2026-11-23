@@ -1,12 +1,14 @@
 // src/pages/InstructorMainPage.jsx
 import { Link, useNavigate } from "react-router-dom";
-import { Building2, Library, LogOut, Radio, Sparkles } from "lucide-react";
+import { Building2, Library, LogOut, Radio, Sparkles, Users } from "lucide-react";
 import { useAuth } from "../store/auth.store.jsx";
+import { ROLE_LABELS } from "../constants/roles.js";
 import "../styles/Instructor-page.css";
 
 export default function InstructorMainPage() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const isOwner = user?.role === "OWNER";
 
   const handleLogout = async () => {
     await logout();
@@ -18,7 +20,8 @@ export default function InstructorMainPage() {
       <header className="card page-heading">
         <div>
           <span className="page-eyebrow">
-            <Sparkles size={13} /> مساحة المحاضر
+            <Sparkles size={13} /> مساحة المحاضر ·{" "}
+            {ROLE_LABELS[user?.role] || "فريق المنظمة"}
           </span>
           <h1>أهلاً {user?.name || "بك"} 👋</h1>
           <p>
@@ -50,6 +53,28 @@ export default function InstructorMainPage() {
             </div>
             <p className="card-description">
               أنشئ، عدّل، كرر، وأرشف الكويزات. جهّز أسئلتك هنا قبل ما تفتح جلسة.
+            </p>
+            <span className="card-eyebrow">
+              من هنا →
+            </span>
+          </Link>
+
+          <Link className="card link-card" to="/roster">
+            <div className="card-heading">
+              <div className="card-heading-title">
+                <div className="card-icon turquoise">
+                  <Users size={24} />
+                </div>
+                <div>
+                  <span className="card-eyebrow">
+                    الطلاب والأقسام
+                  </span>
+                  <h2>الفصول</h2>
+                </div>
+              </div>
+            </div>
+            <p className="card-description">
+              نظّم طلابك في أقسام، اختار لهم أفاتارات، وتابع تاريخ حضورهم ونتائجهم.
             </p>
             <span className="card-eyebrow">
               من هنا →
@@ -93,7 +118,9 @@ export default function InstructorMainPage() {
               </div>
             </div>
             <p className="card-description">
-              إدارة بيانات المنظمة والأعضاء (مدرسين ومساعدين)، والصلاحيات.
+              {isOwner
+                ? "إدارة بيانات المنظمة والأعضاء (مدرسين ومساعدين)، والصلاحيات."
+                : "عرض بيانات المنظمة وفريق العمل. إدارة الأعضاء متاحة للمالك فقط."}
             </p>
             <span className="card-eyebrow">
               من هنا →

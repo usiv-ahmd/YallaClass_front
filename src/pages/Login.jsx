@@ -1,9 +1,9 @@
 // src/pages/Login.jsx
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Presentation, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../store/auth.store.jsx";
-import { MOCK_INSTRUCTOR } from "../constants/auth.js";
+import { resolvePostLoginPath } from "../constants/roles.js";
 import "../styles/auth.css";
 
 export default function Login() {
@@ -12,7 +12,7 @@ export default function Login() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, error, isReady, isAuthenticated } = useAuth();
+  const { login, error, isReady, isAuthenticated, user } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,30 +20,29 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (busy) return;
+
     setBusy(true);
     try {
-      await login({
+      const nextUser = await login({
         email: formData.email.trim(),
         password: formData.password,
       });
-      const to = location.state?.from || "/instructor-dashboard";
+      const to = resolvePostLoginPath(nextUser?.role, location.state?.from);
       navigate(to, { replace: true });
     } catch {
+      // The auth store exposes the backend error through `error`.
     } finally {
       setBusy(false);
     }
   };
 
-  const fillMock = () => {
-    setFormData({ ...MOCK_INSTRUCTOR });
-  };
-
   useEffect(() => {
     if (isReady && isAuthenticated) {
-      const to = location.state?.from || "/instructor-dashboard";
+      const to = resolvePostLoginPath(user?.role, location.state?.from);
       navigate(to, { replace: true });
     }
-  }, [isReady, isAuthenticated, navigate, location.state]);
+  }, [isReady, isAuthenticated, user?.role, navigate, location.state]);
 
   return (
     <div className="page">
@@ -51,38 +50,46 @@ export default function Login() {
         <div className="layout">
           <div className="card auth-container">
             <div className="auth-header">
-              <h2 className="auth-tilte">
-                تسجيل دخول المدرس
-              </h2>
-              <p>
-                سجّل دخولك عشان تنشئ الحصص وتتحكم فيها.
-              </p>
+              <h2 className="auth-tilte">تسجيل الدخول</h2>
+              <p>سجّل دخولك للوصول للوحة التحكم المناسبة لدورك.</p>
             </div>
 
             <form onSubmit={handleSubmit}>
               <label>البريد الإلكتروني</label>
               <div className="input-wrap">
-                <input name="email" placeholder="instructor@yalla.com" required type="email" value={formData.email} onChange={handleChange} />
+                <input
+                  autoComplete="email"
+                  name="email"
+                  placeholder="name@yalla.com"
+                  required
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
               </div>
 
               <label>كلمة المرور</label>
               <div className="input-wrap">
-                <input name="password" placeholder="••••••••" required type="password" value={formData.password} onChange={handleChange} />
+                <input
+                  autoComplete="current-password"
+                  name="password"
+                  placeholder="••••••••"
+                  required
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
               </div>
 
-              {error && <p className="error-alert">
-                {error}
-              </p>}
+              {error && <p className="error-alert">{error}</p>}
 
               <button className="submit-btn red" disabled={busy} type="submit">
-                {busy ? "جاري الدخول..." : "دخول كمدرس"}
+                {busy ? "جاري الدخول..." : "دخول"}
               </button>
             </form>
 
             <span className="auth-switch">
-              انت طالب؟ <Link to="/join">
-                دوس هنا
-              </Link>
+              انت طالب؟ <Link to="/join">دوس هنا</Link>
             </span>
 
             <span className="auth-back">

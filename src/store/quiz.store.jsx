@@ -1,7 +1,21 @@
 // src/store/quiz.store.jsx
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { quizApi } from "../api/quiz.api.js";
 import { useAuth } from "./auth.store.jsx";
+
+function questionStats(questions) {
+  return {
+    questionCount: questions.length,
+    estimatedDurationSec: questions.reduce(
+      (total, question) => total + (Number(question.timeLimitSec) || 0),
+      0
+    ),
+  };
+}
+
+function sortQuestions(questions) {
+  return [...questions].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
 
 export function useQuizLibrary({ archived = false } = {}) {
   const { isAuthenticated } = useAuth();
@@ -25,27 +39,28 @@ export function useQuizLibrary({ archived = false } = {}) {
 
   const createQuiz = useCallback(async (payload) => {
     const res = await quizApi.create(payload);
-    setQuizzes((prev) => [{ ...res.data, questionCount: (res.data.questions || []).length }, ...prev]);
+    setQuizzes((prev) => [res.data, ...prev]);
     return res.data;
   }, []);
 
   const duplicateQuiz = useCallback(async (quizId) => {
     const res = await quizApi.duplicate(quizId);
-    setQuizzes((prev) => [{ ...res.data, questionCount: (res.data.questions || []).length }, ...prev]);
+    setQuizzes((prev) => [res.data, ...prev]);
     return res.data;
   }, []);
 
   const archiveQuiz = useCallback(async (quizId, archivedFlag) => {
     await quizApi.archive(quizId, archivedFlag);
-    setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
+    setQuizzes((prev) => prev.filter((quiz) => quiz.id !== quizId));
   }, []);
 
   const deleteQuiz = useCallback(async (quizId) => {
     await quizApi.delete(quizId);
-    setQuizzes((prev) => prev.filter((q) => q.id !== quizId));
+    setQuizzes((prev) => prev.filter((quiz) => quiz.id !== quizId));
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
   }, [refresh]);
 
@@ -81,23 +96,84 @@ export function useQuiz(quizId) {
     }
   }, [quizId]);
 
-  const saveMeta = useCallback(async (patch) => {
-    const res = await quizApi.update(quizId, patch);
-    setQuiz((prev) => ({ ...prev, ...res.data, questionCount: (res.data.questions || []).length }));
-    return res.data;
-  }, [quizId]);
+  const saveMeta = useCallback(
+    async (patch) => {
+      const res = await quizApi.update(quizId, patch);
+      setQuiz((prev) => ({
+        ...prev,
+        ...res.data,
+        questions: prev?.questions || [],
+      }));
+      return res.data;
+    },
+    [quizId]
+  );
 
-  const updateQuestions = useCallback(async (nextQuestions) => {
-    const res = await quizApi.updateQuestions(quizId, nextQuestions);
-    setQuiz((prev) => ({ ...prev, ...res.data, questionCount: (res.data.questions || []).length }));
-    return res.data;
-  }, [quizId]);
+  const addQuestion = useCallback(
+    async (payload) => {
+      const res = await quizApi.addQuestion(quizId, payload);
+      const question = res.data;
+
+      setQuiz((prev) => {
+        if (!prev) return prev;
+        const questions = sortQuestions([...(prev.questions || []), question]);
+        return { ...prev, questions, ...questionStats(questions) };
+      });
+
+      return question;
+    },
+    [quizId]
+  );
+
+  const updateQuestion = useCallback(
+    async (questionId, payload) => {
+      const res = await quizApi.updateQuestion(quizId, questionId, payload);
+      const updated = res.data;
+
+      setQuiz((prev) => {
+        if (!prev) return prev;
+        const questions = sortQuestions(
+          (prev.questions || []).map((question) =>
+            question.id === questionId ? updated : question
+          )
+        );
+        return { ...prev, questions, ...questionStats(questions) };
+      });
+
+      return updated;
+    },
+    [quizId]
+  );
+
+  const deleteQuestion = useCallback(
+    async (questionId) => {
+      await quizApi.deleteQuestion(quizId, questionId);
+
+      setQuiz((prev) => {
+        if (!prev) return prev;
+        const questions = (prev.questions || []).filter(
+          (question) => question.id !== questionId
+        );
+        return { ...prev, questions, ...questionStats(questions) };
+      });
+    },
+    [quizId]
+  );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
   }, [refresh]);
 
-  const asSession = useMemo(() => ({ id: quiz?.id, questions: quiz?.questions || [] }), [quiz]);
-
-  return { quiz, asSession, loading, error, refresh, saveMeta, updateQuestions };
+  return {
+    quiz,
+    questions: quiz?.questions || [],
+    loading,
+    error,
+    refresh,
+    saveMeta,
+    addQuestion,
+    updateQuestion,
+    deleteQuestion,
+  };
 }

@@ -1,13 +1,12 @@
 // src/providers/http/game.http.js
-function notConnected(method) {
-  return async () => {
-    throw {
-      status: 0,
-      message: `[http:game] ${method}() — backend not connected`,
-    };
-  };
-}
+import { notImplemented } from "./not-implemented";
 
 export const gameHttp = {
-  submitAnswer: notConnected("submitAnswer"),
+  // Answers are submitted through Socket.IO and scored by the game engine.
+  // There is no REST endpoint for this operation.
+  submitAnswer: notImplemented(
+    "game",
+    "submitAnswer",
+    "Answer submission is handled over Socket.IO (Phase 4/5)."
+  ),
 };

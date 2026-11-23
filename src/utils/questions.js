@@ -1,16 +1,42 @@
 // src/utils/questions.js
 import { QUESTION_TYPES } from "../constants/questions.js";
 
-export function makeId(prefix) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+export function getCorrectIndex(question) {
+  const options = Array.isArray(question?.options) ? question.options : [];
+
+  const flaggedIndex = options.findIndex((option) =>
+    Boolean(option && typeof option === "object" && option.isCorrect)
+  );
+
+  if (flaggedIndex >= 0) {
+    return flaggedIndex;
+  }
+
+  if (Number.isInteger(question?.correctOptionIndex)) {
+    return question.correctOptionIndex;
+  }
+
+  if (Number.isInteger(question?.correctIndex)) {
+    return question.correctIndex;
+  }
+
+  if (typeof question?.correctAnswer === "string") {
+    return options.findIndex(
+      (option) =>
+        (option && typeof option === "object" ? option.text : option) ===
+        question.correctAnswer
+    );
+  }
+
+  return -1;
 }
 
-export function getCorrectIndex(question) {
-  if (Number.isInteger(question?.correctOptionIndex)) return question.correctOptionIndex;
-  if (Array.isArray(question?.options) && typeof question?.correctAnswer === "string") {
-    return question.options.indexOf(question.correctAnswer);
+export function getOptionText(option) {
+  if (option && typeof option === "object") {
+    return String(option.text ?? "");
   }
-  return -1;
+
+  return String(option ?? "");
 }
 
 export function clampNumber(value, min, max, fallback) {

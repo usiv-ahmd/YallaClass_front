@@ -1,291 +1,318 @@
 // src/hooks/usePlayerSession.js
+//
+// Student (public) session flow. Students have no platform account; they join
+// with a 6-character code and a session-scoped participant token. The server is
+// the source of truth for gameplay state.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import { sessionApi } from "../api/session.api";
-import { subscribeRemoteSession } from "../providers/mock/realtimeAdapter";
+import {
+  CONNECTION_STATUS,
+  LIVE_SYNC_EVENTS,
+  SOCKET_EVENTS,
+  createPlayerLiveClient,
+} from "../realtime";
+import { normalizeGameState } from "../adapters/session.adapter.js";
+import { buildJoinPayload } from "../adapters/session.adapter.js";
 
 const STORAGE_PREFIX = "yalla-class:player:";
-const COUNTDOWN_SECONDS = 3;
 
-const COMMAND_RULES = {
-  gift:   { maxUses: 1, requiresTarget: true, label: "هدية" },
-  thief:  { maxUses: 1, requiresTarget: true, label: "سرقة" },
-  rocket: { maxUses: 1, requiresTarget: true, label: "صاروخ" },
-};
-
-function countCommandUses(session, studentId, command) {
-  return (session?.events || []).filter(
-    (e) => e.type === `command:${command}` && e.actorId === studentId
-  ).length;
+export function storePlayerSeat(joinCode, participant) {
+  try {
+    localStorage.setItem(
+      STORAGE_PREFIX + String(joinCode).toUpperCase(),
+      JSON.stringify({
+        participantToken: participant.participantToken,
+        participant,
+      })
+    );
+  } catch {
+    // Storage can be unavailable; the join still works for this tab.
+  }
 }
 
-function storePlayerSeat(sessionId, student) {
+export function loadStoredPlayer(joinCode) {
   try {
-    sessionStorage.setItem(STORAGE_PREFIX + sessionId, JSON.stringify(student));
-  } catch {}
-}
-
-function loadStoredPlayer(sessionId) {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_PREFIX + sessionId);
+    const raw = localStorage.getItem(
+      STORAGE_PREFIX + String(joinCode).toUpperCase()
+    );
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
   }
 }
 
-function clearStoredPlayer(sessionId) {
+export function clearStoredPlayer(joinCode) {
   try {
-    sessionStorage.removeItem(STORAGE_PREFIX + sessionId);
-  } catch {}
+    localStorage.removeItem(STORAGE_PREFIX + String(joinCode).toUpperCase());
+  } catch {
+    // Ignore storage errors.
+  }
 }
 
-function usePlayerSession(sessionId) {
-  const [student, setStudent] = useState(() => loadStoredPlayer(sessionId));
-  const [session, setSession] = useState(null);
+export function usePlayerSession(joinCode) {
+  const code = String(joinCode || "").trim().toUpperCase();
+  const [publicSession, setPublicSession] = useState(null);
+  const [participant, setParticipant] = useState(null);
+  const [game, setGame] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [submittedForCurrent, setSubmittedForCurrent] = useState(false);
+  const [actionError, setActionError] = useState(null);
+  const [connection, setConnection] = useState(CONNECTION_STATUS.CONNECTING);
+  const [clock, setClock] = useState(() => Date.now());
+  const [serverOffset, setServerOffset] = useState(0);
+  const [kicked, setKicked] = useState(false);
 
-  const [now, setNow] = useState(() => Date.now());
-  const nowRef = useRef(now);
-  nowRef.current = now;
+  const clientRef = useRef(null);
+  const syncTimerRef = useRef(null);
 
-  const liveState = session?.live?.state;
+  const applyState = useCallback((raw) => {
+    const state = normalizeGameState(raw);
 
-  const refresh = useCallback(async () => {
-    if (!sessionId) return;
+    if (!state) return;
+
+    setGame(state);
+
+    if (state.serverTime) {
+      const serverTime = new Date(state.serverTime).getTime();
+
+      if (Number.isFinite(serverTime)) {
+        setServerOffset(serverTime - Date.now());
+      }
+    }
+
+    setLoading(false);
+  }, []);
+
+  const scheduleSync = useCallback(() => {
+    if (syncTimerRef.current) return;
+
+    syncTimerRef.current = setTimeout(() => {
+      syncTimerRef.current = null;
+      clientRef.current?.emit(SOCKET_EVENTS.SYNC).catch(() => {});
+    }, 350);
+  }, []);
+
+  const init = useCallback(async () => {
+    if (!code) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const stored = loadStoredPlayer(code);
+
     try {
-      const res = await sessionApi.getPublicById(sessionId);
-      setSession(res.data);
-    } catch (e) {
-      setError(e.message || "تعذّر تحميل الحصة");
+      if (stored?.participantToken) {
+        const res = await sessionApi.reconnect(code, stored.participantToken);
+        setPublicSession(res.data.session);
+        setParticipant(res.data.participant);
+        storePlayerSeat(code, res.data.participant);
+      } else {
+        const res = await sessionApi.getByCode(code);
+        setPublicSession(res.data);
+      }
+    } catch {
+      if (stored) clearStoredPlayer(code);
+      setParticipant(null);
+
+      try {
+        const res = await sessionApi.getByCode(code);
+        setPublicSession(res.data);
+      } catch (e2) {
+        setError(e2.message || "الجلسة مش موجودة");
+      }
     } finally {
       setLoading(false);
     }
-  }, [sessionId]);
+  }, [code]);
 
-  const currentQuestion = useMemo(() => {
-    if (!session?.questions || !session.live) return null;
-    return session.questions[session.live.currentQuestionIndex] ?? null;
-  }, [session?.questions, session?.live?.currentQuestionIndex]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    init();
+  }, [init]);
 
-  const timeLeft = useMemo(() => {
-    if (!session?.live) return 0;
-    if (session.live.state !== "question") return session.live.timeLeft ?? 0;
-    if (!session.live.startedAt || !currentQuestion) {
-      return session.live.timeLeft ?? 0;
+  useEffect(() => {
+    if (!code || !participant?.participantToken) return undefined;
+
+    let disposed = false;
+    let client = null;
+
+    try {
+      client = createPlayerLiveClient({
+        joinCode: code,
+        participantToken: participant.participantToken,
+        onStatus: (status, extra) => {
+          if (disposed) return;
+          setConnection(status);
+
+          if (status === CONNECTION_STATUS.ERROR && extra?.error) {
+            setActionError(extra.error.message);
+          }
+        },
+      });
+    } catch (error) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setConnection(CONNECTION_STATUS.ERROR);
+      setActionError(error.message || "تعذّر الاتصال بالجلسة");
+      return undefined;
     }
-    const elapsedSec = (now - session.live.startedAt) / 1000;
-    return Math.max(0, currentQuestion.duration - elapsedSec);
-  }, [session?.live, currentQuestion, now]);
 
-  const countdownRemaining = useMemo(() => {
-    if (!session?.live || session.live.state !== "countdown") return 0;
-    if (!session.live.startedAt) return COUNTDOWN_SECONDS;
-    const elapsedSec = (now - session.live.startedAt) / 1000;
-    return Math.max(0, Math.ceil(COUNTDOWN_SECONDS - elapsedSec));
-  }, [session?.live, now]);
+    clientRef.current = client;
 
-  const liveStudent = useMemo(() => {
-    if (!session || !student) return student;
-    return session.students?.find((s) => s.id === student.id) || student;
-  }, [session, student]);
+    const unsubscribers = [
+      client.on(SOCKET_EVENTS.GAME_STATE, applyState),
+      client.on("game:error", (liveError) => {
+        if (!disposed) setActionError(liveError.message);
+      }),
+      client.on(SOCKET_EVENTS.SESSION_KICKED, () => {
+        if (disposed) return;
+        setKicked(true);
+        clearStoredPlayer(code);
+        client.disconnect();
+      }),
+    ];
 
-  const myAnswers = useMemo(() => {
-    if (!session || !student) return {};
-    return session.answers?.[student.id] || {};
-  }, [session, student]);
+    for (const event of LIVE_SYNC_EVENTS) {
+      unsubscribers.push(client.on(event, scheduleSync));
+    }
 
-  const currentAnswer = currentQuestion ? myAnswers[currentQuestion.id] : null;
-  const hasAnsweredCurrent = Boolean(currentAnswer) || submittedForCurrent;
+    const periodic = setInterval(() => {
+      if (client.connected) {
+        client.emit(SOCKET_EVENTS.SYNC).catch(() => {});
+      }
+    }, 12000);
+
+    return () => {
+      disposed = true;
+      clearInterval(periodic);
+
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+        syncTimerRef.current = null;
+      }
+
+      for (const unsubscribe of unsubscribers) unsubscribe();
+      client.disconnect();
+      clientRef.current = null;
+    };
+  }, [code, participant?.participantToken, applyState, scheduleSync]);
+
+  const isLive = game?.status === "LIVE" || game?.status === "PAUSED";
+
+  useEffect(() => {
+    if (!isLive) return undefined;
+
+    const interval = setInterval(() => setClock(Date.now()), 250);
+    return () => clearInterval(interval);
+  }, [isLive]);
 
   const join = useCallback(
-    async ({ code, name, nickname, avatar }) => {
+    async (payload = {}) => {
       setError(null);
-      const res = await sessionApi.join({ code, name, nickname, avatar });
-      storePlayerSeat(sessionId, res.data.student);
-      setStudent(res.data.student);
-      setSession(res.data.session);
-      return res.data;
-    },
-    [sessionId]
-  );
+      setActionError(null);
 
-  const submitAnswer = useCallback(
-    async (selectedOption) => {
-      if (!student || !currentQuestion || !session) return;
-      if (hasAnsweredCurrent) return;
-      setSubmitting(true);
-      setError(null);
       try {
-        const res = await sessionApi.submitAnswer({
-          sessionId,
-          studentId: student.id,
-          questionId: currentQuestion.id,
-          selectedOption,
-        });
-        setSubmittedForCurrent(true);
-        setSession((prev) => {
-          if (!prev) return prev;
-          const prevAnswers = prev.answers?.[student.id] || {};
-          return {
-            ...prev,
-            answers: {
-              ...prev.answers,
-              [student.id]: {
-                ...prevAnswers,
-                [currentQuestion.id]: res.data.answer,
-              },
-            },
-            students: prev.students.map((s) =>
-              s.id === student.id ? res.data.student : s
-            ),
-          };
-        });
+        const request = buildJoinPayload(payload);
+        const res = await sessionApi.join({ code, ...request });
+        storePlayerSeat(code, res.data.participant);
+        setPublicSession(res.data.session);
+        setParticipant(res.data.participant);
         return res.data;
       } catch (e) {
-        setError(e.message || "تعذّر إرسال الإجابة");
+        setError(e.message || "تعذّر الانضمام للجلسة");
         throw e;
-      } finally {
-        setSubmitting(false);
       }
     },
-    [sessionId, student, currentQuestion, session, hasAnsweredCurrent]
+    [code]
   );
 
-  const leave = useCallback(async () => {
-    if (student) {
+  const answer = useCallback(
+    async (optionId) => {
+      const client = clientRef.current;
+      const question = game?.question;
+
+      if (!client || !question || !optionId) return null;
+
+      setActionError(null);
+
       try {
-        await sessionApi.leave(sessionId, student.id);
-      } catch {}
-    }
-    clearStoredPlayer(sessionId);
-    setStudent(null);
-    setSession(null);
-  }, [sessionId, student]);
-
-  const forgetSeat = useCallback(() => {
-    clearStoredPlayer(sessionId);
-    setStudent(null);
-  }, [sessionId]);
-
-  const commandsEnabled = useMemo(
-    () => session?.settings?.commandsEnabled || { gift: false, thief: false, rocket: false },
-    [session?.settings?.commandsEnabled]
-  );
-
-  const commandsUsed = useMemo(() => {
-    if (!session || !student) return {};
-    const out = {};
-    for (const cmd of Object.keys(COMMAND_RULES)) {
-      out[cmd] = countCommandUses(session, student.id, cmd);
-    }
-    return out;
-  }, [session, student]);
-
-  const canUseCommand = useCallback(
-    (cmd) => {
-      if (!student) return false;
-      if (session?.live?.state !== "question") return false;
-      const rules = COMMAND_RULES[cmd];
-      if (!rules) return false;
-      if (!commandsEnabled[cmd]) return false;
-      if ((commandsUsed[cmd] || 0) >= rules.maxUses) return false;
-      return true;
-    },
-    [student, session?.live?.state, commandsEnabled, commandsUsed]
-  );
-
-  const useCommand = useCallback(
-    async (cmd, targetId = null) => {
-      if (!sessionId || !student) return;
-      setError(null);
-      try {
-        const res = await sessionApi.useCommand({
-          sessionId,
-          studentId: student.id,
-          command: cmd,
-          targetId,
+        const data = await client.emit(SOCKET_EVENTS.ANSWER_SUBMIT, {
+          questionId: question.id,
+          optionId,
         });
-        setSession(res.data.session);
-        return res.data.event;
+        await client.emit(SOCKET_EVENTS.SYNC).catch(() => {});
+        return data;
       } catch (e) {
-        setError(e.message || "تعذّر استخدام الأمر");
-        throw e;
+        setActionError(e.message || "تعذّر إرسال الإجابة");
+        return null;
       }
     },
-    [sessionId, student]
+    [game?.question]
   );
 
-  const myRank = useMemo(() => {
-    if (!session || !student) return null;
-    const me = session.students.find((s) => s.id === student.id);
-    return me?.rank ?? null;
-  }, [session, student]);
+  const selectTarget = useCallback(async (targetParticipantId) => {
+    const client = clientRef.current;
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (!client || !targetParticipantId) return null;
 
-  useEffect(() => {
-    if (!sessionId) return;
-    return subscribeRemoteSession(sessionId, (fresh) => {
-      const myAnswers = student ? fresh.answers?.[student.id] || {} : {};
-      setSession({
-        ...fresh,
-        answers: { [student?.id || "__none__"]: myAnswers },
+    setActionError(null);
+
+    try {
+      const data = await client.emit(SOCKET_EVENTS.SELECT_TARGET, {
+        targetParticipantId,
       });
-    });
-  }, [sessionId, student?.id]);
+      await client.emit(SOCKET_EVENTS.SYNC).catch(() => {});
+      return data;
+    } catch (e) {
+      setActionError(e.message || "تعذّر اختيار الهدف");
+      return null;
+    }
+  }, []);
 
-  useEffect(() => {
-    if (liveState !== "question" && liveState !== "countdown") return;
-    const i = setInterval(() => setNow(Date.now()), 250);
-    return () => clearInterval(i);
-  }, [liveState]);
+  const leave = useCallback(() => {
+    clientRef.current?.disconnect();
+    clientRef.current = null;
+    clearStoredPlayer(code);
+    setParticipant(null);
+    setGame(null);
+  }, [code]);
 
-  useEffect(() => {
-    setSubmittedForCurrent(false);
-  }, [session?.live?.currentQuestionIndex]);
+  const remainingMs = useMemo(() => {
+    if (!game) return null;
+
+    if (game.status === "PAUSED") {
+      return game.remainingTimeMs ?? null;
+    }
+
+    if (!game.phaseEndsAt) {
+      return game.remainingTimeMs ?? null;
+    }
+
+    const end = new Date(game.phaseEndsAt).getTime();
+
+    if (!Number.isFinite(end)) return game.remainingTimeMs ?? null;
+
+    return Math.max(0, end - (clock + serverOffset));
+  }, [game, clock, serverOffset]);
 
   return {
-    session,
-    student: liveStudent,
-    currentQuestion,
-    timeLeft,
-    countdownRemaining,
-    currentAnswer,
-    hasAnsweredCurrent,
-    myAnswers,
-    myRank,
-    students: session?.students || [],
-    leaderboard: (session?.students || [])
-      .slice()
-      .sort((a, b) => (a.rank || 999) - (b.rank || 999)),
-    liveState: session?.live?.state,
-    currentQuestionIndex: session?.live?.currentQuestionIndex ?? 0,
-    totalQuestions: session?.questions?.length ?? 0,
-
+    code,
+    publicSession,
+    participant,
+    game,
     loading,
     error,
-    submitting,
-    isLive: session?.live?.isLive ?? false,
-    allowJoining: session?.settings?.allowJoining ?? true,
-
-    commandsEnabled,
-    commandsUsed,
-    canUseCommand,
-    useCommand,
-    rocketActive: Boolean(liveStudent?.rocketActive),
-    commandRules: COMMAND_RULES,
-
+    actionError,
+    clearActionError: () => setActionError(null),
+    connection,
+    remainingMs,
+    kicked,
     join,
-    submitAnswer,
+    answer,
+    selectTarget,
     leave,
-    forgetSeat,
-    refresh,
   };
 }
-
-export { storePlayerSeat, usePlayerSession };

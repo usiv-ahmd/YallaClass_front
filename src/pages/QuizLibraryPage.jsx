@@ -4,22 +4,29 @@ import { Link, useNavigate } from "react-router-dom";
 import { Archive, ArrowRight, Copy, FileQuestion, Plus, Search, Trash2, Library, X } from "lucide-react";
 import { useQuizLibrary } from "../store/quiz.store.jsx";
 import Loading from "../components/ui/Loading.jsx";
+import {
+  QUIZ_DESCRIPTION_MAX_LENGTH,
+  QUIZ_TITLE_MAX_LENGTH,
+} from "../adapters/quiz.adapter.js";
 
 export default function QuizLibraryPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  const [draft, setDraft] = useState({ title: "", subject: "", tags: "" });
+  const [draft, setDraft] = useState({ title: "", description: "" });
   const [createError, setCreateError] = useState(null);
   const [createBusy, setCreateBusy] = useState(false);
 
-  const { quizzes, loading, error, refresh, createQuiz, duplicateQuiz, archiveQuiz, deleteQuiz } = useQuizLibrary({ archived: showArchived });
+  const { quizzes, loading, error, createQuiz, duplicateQuiz, archiveQuiz, deleteQuiz } = useQuizLibrary({ archived: showArchived });
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     if (!term) return quizzes;
-    return quizzes.filter((q) => q.title.toLowerCase().includes(term) || (q.subject || "").toLowerCase().includes(term) || (q.tags || []).some((t) => t.toLowerCase().includes(term)));
+    return quizzes.filter((quiz) =>
+      quiz.title.toLowerCase().includes(term) ||
+      (quiz.description || "").toLowerCase().includes(term)
+    );
   }, [quizzes, search]);
 
   const handleCreate = async (e) => {
@@ -27,17 +34,9 @@ export default function QuizLibraryPage() {
     setCreateError(null);
     setCreateBusy(true);
     try {
-      const tags = draft.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
-      const quiz = await createQuiz({
-        title: draft.title,
-        subject: draft.subject,
-        tags,
-      });
+      const quiz = await createQuiz(draft);
       setCreateOpen(false);
-      setDraft({ title: "", subject: "", tags: "" });
+      setDraft({ title: "", description: "" });
       navigate(`/library/${quiz.id}`);
     } catch (err) {
       setCreateError(err.message || "تعذّر إنشاء الكويز");
@@ -99,7 +98,7 @@ export default function QuizLibraryPage() {
           <div className="card-heading">
             <div className="input-wrap" style={{ flex: 1 }}>
               <Search size={16} />
-              <input placeholder="ابحث بالاسم أو المادة أو الوسم..." type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <input placeholder="ابحث بالاسم أو الوصف..." type="search" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
             <button className={`button button-primary ${showArchived ? "turquoise" : "ghost"}`} type="button" onClick={() => setShowArchived((v) => !v)}>
               <Archive size={15} /> {showArchived ? "المؤرشفة" : "الأرشيف"}
@@ -132,24 +131,14 @@ export default function QuizLibraryPage() {
                       <h3 className="quiz-card-title">
                         {quiz.title}
                       </h3>
-                      {quiz.subject && <small className="text-muted">
-                        {quiz.subject}
+                      {quiz.description && <small className="text-muted">
+                        {quiz.description}
                       </small>}
                     </div>
                     <span className="count-pill">
                       {quiz.questionCount ?? 0} سؤال
                     </span>
                   </div>
-
-                  {(quiz.tags || []).length > 0 && (
-                    <div className="question-options-preview">
-                      {quiz.tags.map((tag) => (
-                        <span key={tag}>
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
 
                   <div className="quiz-card-actions" onClick={(e) => e.stopPropagation()}>
                     <button className="small-icon-button blue-icon" title="نسخ" type="button" onClick={() => handleDuplicate(quiz)}>
@@ -194,17 +183,12 @@ export default function QuizLibraryPage() {
             <form className="modal-content" onSubmit={handleCreate}>
               <label>عنوان الكويز</label>
               <div className="input-wrap">
-                <input maxLength={80} placeholder="مثال: مراجعة قوانين الحركة" required type="text" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+                <input maxLength={QUIZ_TITLE_MAX_LENGTH} placeholder="مثال: مراجعة قوانين الحركة" required type="text" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
               </div>
 
-              <label>المادة / الصف</label>
-              <div className="input-wrap">
-                <input placeholder="مثال: فيزياء · الصف الثاني" type="text" value={draft.subject} onChange={(e) => setDraft({ ...draft, subject: e.target.value })} />
-              </div>
-
-              <label>وسوم (مفصولة بفواصل)</label>
-              <div className="input-wrap">
-                <input placeholder="مثال: مراجعة, قوانين" type="text" value={draft.tags} onChange={(e) => setDraft({ ...draft, tags: e.target.value })} />
+              <label>وصف الكويز (اختياري)</label>
+              <div className="question-input-wrap">
+                <textarea maxLength={QUIZ_DESCRIPTION_MAX_LENGTH} placeholder="وصف قصير للكويز..." rows={3} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
               </div>
 
               {createError && <p className="error-alert">
